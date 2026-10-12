@@ -10,12 +10,14 @@ import {
   ListChecks,
   Settings,
   ScrollText,
+  Inbox,
 } from "lucide-react";
 import { getCurrentAdmin } from "@/app/lib/auth";
 import LogoutButton from "../LogoutButton";
 
 const NAV_ITEMS = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/leads", label: "Leads", icon: Inbox },
   { href: "/admin/seo", label: "SEO", icon: Search },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/admin/google-business", label: "Google Business", icon: MapPin },

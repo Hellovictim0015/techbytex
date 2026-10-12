@@ -63,11 +63,31 @@ const NewsletterSubscription = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  // Saved to the database (Admin → Leads) and emailed to the team.
+  const handleSubmit = async (e) => {
     e?.preventDefault();
-    // Mock subscription logic
-    console.log('Newsletter subscription:', formData);
-    setIsSubmitted(true);
+    setIsSubmitting(true);
+    setError('');
+    try {
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, formType: 'newsletter' }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        setError(data.error || 'Could not subscribe. Please try again.');
+        return;
+      }
+      setIsSubmitted(true);
+    } catch {
+      setError('Could not subscribe. Please check your connection and try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSubmitted) {
@@ -76,7 +96,7 @@ const NewsletterSubscription = () => {
         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <Icon name="CheckCircle" size={32} className="text-green-600" />
         </div>
-        <h3 className="text-2xl font-bold text-primary mb-2">Welcome to GeekyAnts Pro Insights!</h3>
+        <h3 className="text-2xl font-bold text-primary mb-2">Welcome to TechByteX Insights!</h3>
         <p className="text-secondary mb-6">
           Thank you for subscribing. You'll receive your first curated insights newsletter within 24 hours.
         </p>
@@ -205,27 +225,32 @@ const NewsletterSubscription = () => {
               <p className="text-sm text-secondary">
                 Your information is protected by enterprise-grade security. You can unsubscribe at any time, 
                 and we'll never share your data with third parties. Read our{' '}
-                <a href="#" className="text-accent hover:underline">Privacy Policy</a> for details.
+                <a href="/privacy" className="text-accent hover:underline">Privacy Policy</a> for details.
               </p>
             </div>
           </div>
         </div>
+
+        {error && (
+          <p className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{error}</p>
+        )}
 
         <Button
           type="submit"
           variant="default"
           size="lg"
           fullWidth
+          disabled={isSubmitting}
           iconName="ArrowRight"
           iconPosition="right"
           className="bg-accent hover:bg-accent/90 text-white"
         >
-          Subscribe to Insights
+          {isSubmitting ? 'Subscribing...' : 'Subscribe to Insights'}
         </Button>
       </form>
       <div className="mt-6 text-center">
         <p className="text-sm text-secondary">
-          Join 15,000+ technology leaders who trust GeekyAnts Pro for cutting-edge insights
+          Practical web, app and AI insights from the TechByteX team
         </p>
       </div>
     </div>

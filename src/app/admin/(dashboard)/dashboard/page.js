@@ -1,4 +1,5 @@
 import { query } from "@/app/lib/db";
+import Link from "next/link";
 import StatCard from "../StatCard";
 import { fmt } from "../MetricTable";
 
@@ -9,7 +10,7 @@ export const metadata = {
 
 async function loadDbStats() {
   try {
-    const [[pending], [adminCount], [recentLogins], [seo], [ga], [blogs]] = await Promise.all([
+    const [[pending], [adminCount], [recentLogins], [seo], [ga], [blogs], [leads]] = await Promise.all([
       query("SELECT COUNT(*) AS n FROM ai_recommendations WHERE status = 'pending'"),
       query("SELECT COUNT(*) AS n FROM admin_users WHERE is_active = 1"),
       query(
@@ -24,6 +25,9 @@ async function loadDbStats() {
       query(
         "SELECT SUM(status = 'published') AS published, SUM(status = 'draft') AS drafts FROM ai_blog_posts"
       ),
+      query(
+        "SELECT SUM(status = 'new') AS new_count, SUM(created_at > (NOW() - INTERVAL 7 DAY) AND status <> 'spam') AS week FROM form_submissions"
+      ).catch(() => [{}]),
     ]);
     return {
       ok: true,
@@ -34,6 +38,8 @@ async function loadDbStats() {
       ga: ga || null,
       publishedBlogs: Number(blogs.published || 0),
       draftBlogs: Number(blogs.drafts || 0),
+      newLeads: Number(leads.new_count || 0),
+      weekLeads: Number(leads.week || 0),
     };
   } catch (error) {
     return { ok: false, error: error.message };
@@ -69,7 +75,13 @@ export default async function AdminDashboardPage() {
           label="Pending AI Recommendations"
           value={db.ok ? db.pendingRecommendations : "—"}
         />
-        <StatCard label="Active Admins" value={db.ok ? db.activeAdmins : "—"} />
+        <Link href="/admin/leads?status=new" className="block hover:opacity-90">
+          <StatCard
+            label="New Leads"
+            value={db.ok ? db.newLeads : "—"}
+            hint={db.ok ? `${db.weekLeads} in the last 7 days` : undefined}
+          />
+        </Link>
         <StatCard label="Admin Logins (7d)" value={db.ok ? db.recentLogins : "—"} />
       </div>
 

@@ -69,7 +69,7 @@ const handleSubmit = async (e) => {
     const res = await fetch("/api/send-email", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
+      body: JSON.stringify({ ...formData, formType: "contact" }),
     });
 
     if (!res.ok) throw new Error("Failed");
