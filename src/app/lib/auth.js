@@ -15,6 +15,33 @@ function hashToken(token) {
     : createHash("sha256").update(token).digest("hex");
 }
 
+// Admin login is a single PIN. Override it with ADMIN_PIN in the environment
+// (.env / Vercel) to change it without a code change.
+const ADMIN_PIN = process.env.ADMIN_PIN || "1180";
+const PIN_ADMIN_EMAIL = "admin@techbytex.in";
+
+export function verifyPin(pin) {
+  const a = createHash("sha256").update(String(pin ?? "")).digest();
+  const b = createHash("sha256").update(ADMIN_PIN).digest();
+  return timingSafeEqual(a, b);
+}
+
+// Sessions and audit logs reference an admin_users row, so a PIN login acts
+// as the first active admin (created on first login if the table is empty).
+export async function getPinAdmin() {
+  const rows = await query(
+    "SELECT id, email, name, role FROM admin_users WHERE is_active = 1 ORDER BY id ASC LIMIT 1"
+  );
+  if (rows[0]) return rows[0];
+
+  const unusableHash = await bcrypt.hash(randomBytes(32).toString("hex"), 12);
+  const result = await query(
+    "INSERT INTO admin_users (email, password_hash, name, role, is_active) VALUES (?, ?, 'TechByteX Admin', 'admin', 1)",
+    [PIN_ADMIN_EMAIL, unusableHash]
+  );
+  return { id: result.insertId, email: PIN_ADMIN_EMAIL, name: "TechByteX Admin", role: "admin" };
+}
+
 export async function hashPassword(password) {
   return bcrypt.hash(password, 12);
 }

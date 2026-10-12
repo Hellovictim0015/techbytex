@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import {
-  findAdminByEmail,
-  verifyPassword,
+  verifyPin,
+  getPinAdmin,
   createSession,
   isLoginRateLimited,
   logAudit,
@@ -19,34 +19,23 @@ export async function POST(req) {
       );
     }
 
-    const { email, password } = await req.json();
-    if (!email || !password) {
-      return Response.json(
-        { success: false, error: "Email and password are required." },
-        { status: 400 }
-      );
+    const { pin } = await req.json();
+    if (!pin) {
+      return Response.json({ success: false, error: "PIN is required." }, { status: 400 });
     }
 
-    const admin = await findAdminByEmail(email);
-    const valid = admin && admin.is_active && (await verifyPassword(password, admin.password_hash));
-
-    if (!valid) {
-      await logAudit({
-        action: "admin_login_failed",
-        actorLabel: String(email).slice(0, 255),
-        ip,
-      });
-      return Response.json(
-        { success: false, error: "Invalid email or password." },
-        { status: 401 }
-      );
+    if (!verifyPin(pin)) {
+      await logAudit({ action: "admin_login_failed", actorLabel: "pin", ip });
+      return Response.json({ success: false, error: "Wrong PIN." }, { status: 401 });
     }
 
+    const admin = await getPinAdmin();
     const userAgent = (await headers()).get("user-agent") || "";
     await createSession(admin.id, { ip, userAgent });
     await logAudit({
       adminUserId: admin.id,
       action: "admin_login_success",
+      actorLabel: "pin",
       ip,
     });
 

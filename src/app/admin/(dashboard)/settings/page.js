@@ -94,9 +94,9 @@ export default async function AdminSettingsPage({ searchParams }) {
           <section className="space-y-3">
             <h2 className="text-sm font-medium text-slate-300">Admin Users</h2>
             <p className="text-xs text-slate-500">
-              New admins are created from the server with{" "}
-              <code className="font-mono">npm run admin:create</code> — there is no public
-              sign-up form.
+              Login is by PIN (default in code, override with the{" "}
+              <code className="font-mono">ADMIN_PIN</code> environment variable). A PIN login acts as
+              the first active admin below for sessions and audit logs.
             </p>
             <div className="overflow-x-auto rounded-lg border border-slate-800">
               <table className="min-w-full divide-y divide-slate-800 text-sm">

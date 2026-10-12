@@ -5,8 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -18,11 +17,12 @@ export default function LoginForm() {
       const res = await fetch("/api/admin/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ pin }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
         setError(data.error || "Login failed.");
+        setPin("");
         setLoading(false);
         return;
       }
@@ -43,24 +43,18 @@ export default function LoginForm() {
         </div>
       )}
       <div>
-        <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
+        <label htmlFor="admin-pin" className="block text-sm font-medium text-slate-300 mb-1">
+          PIN
+        </label>
         <input
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
-          autoComplete="username"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-slate-300 mb-1">Password</label>
-        <input
+          id="admin-pin"
           type="password"
+          inputMode="numeric"
           required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
+          autoFocus
+          value={pin}
+          onChange={(e) => setPin(e.target.value)}
+          className="w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-center text-lg tracking-[0.5em] text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
           autoComplete="current-password"
         />
       </div>
