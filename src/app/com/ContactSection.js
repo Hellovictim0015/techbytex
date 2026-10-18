@@ -1,87 +1,115 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
-import { Phone, MessageCircle } from "lucide-react"; // Imported icons
-
-// Placeholder images
-const faces = [
-  "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80",
-  "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=150&q=80",
-  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
-  "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80",
-  "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=150&q=80",
-  "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=150&q=80",
-  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80",
-  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
-  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80",
-];
+import { Phone, MessageCircle, CheckCircle2 } from "lucide-react"; // Imported icons
 
 const ContactSection = () => {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | sending | sent | error
+  const [error, setError] = useState("");
+
+  // Quick email capture — saved to Admin → Leads and emailed to the team.
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setStatus("sending");
+    setError("");
+    try {
+      const res = await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, formType: "get_in_touch", message: "Requested a call back from the homepage." }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        setError(data.error || "Could not send. Please try WhatsApp or call.");
+        setStatus("error");
+        return;
+      }
+      setEmail("");
+      setStatus("sent");
+    } catch {
+      setError("Could not send. Please try WhatsApp or call.");
+      setStatus("error");
+    }
+  }
+
   return (
     <section className="py-20 px-4 flex justify-center items-center bg-white font-sans">
-      
+
       {/* Main Container Card */}
       <div className="w-full max-w-6xl bg-[#F4F1FF] rounded-[2.5rem] p-8 md:p-16 flex flex-col lg:flex-row items-center justify-between relative overflow-hidden shadow-sm border border-slate-100">
-        
+
         {/* Background Pattern */}
-        <div className="absolute inset-0 pointer-events-none opacity-40" 
+        <div className="absolute inset-0 pointer-events-none opacity-40"
              style={{ backgroundImage: 'radial-gradient(#7C3AED 1px, transparent 1px)', backgroundSize: '30px 30px' }}>
         </div>
-        
+
         {/* Soft Gradient Overlay */}
         <div className="absolute bottom-0 left-0 w-1/2 h-full bg-gradient-to-t from-white/60 to-transparent pointer-events-none" />
 
-        {/* --- Left Side: Avatar Grid --- */}
+        {/* --- Left Side: Showcase Image --- */}
         <div className="relative z-10 w-full lg:w-1/2 flex justify-center lg:justify-start mb-12 lg:mb-0">
-          <div className="grid grid-cols-3 gap-4 max-w-md">
-            {/* Avatars... (Same as before) */}
-            {faces.map((face, i) => {
-              const offsets = ["", "translate-y-4", "", "-translate-y-2", "translate-y-2", "-translate-y-2", "", "-translate-y-4", ""];
-              return (
-                <div
-                  key={i}
-                  className={`relative col-span-1 h-24 md:h-28 rounded-2xl overflow-hidden shadow-md transform hover:scale-105 transition-transform duration-300 ${offsets[i]}`}
-                >
-                  <Image src={face} alt="TechByteX client" fill sizes="150px" loading="lazy" className="object-cover" />
-                </div>
-              );
-            })}
+          <div className="relative w-full max-w-lg aspect-[3/2] rounded-3xl overflow-hidden shadow-xl ring-1 ring-[#7C3AED]/10">
+            <Image
+              src="/techbytex-build-your-ideas.webp"
+              alt="TechByteX web development, mobile app, UI/UX design and software solutions on desktop, laptop and phone"
+              fill
+              sizes="(max-width: 1024px) 100vw, 512px"
+              loading="lazy"
+              className="object-cover"
+            />
           </div>
         </div>
 
         {/* --- Right Side: Content & Form --- */}
         <div className="relative z-10 w-full lg:w-1/2 text-center lg:text-left pl-0 lg:pl-10">
-          
+
           <span className="inline-block py-1.5 px-4 rounded-full bg-white text-[#7C3AED] text-xs font-bold tracking-widest uppercase mb-6 shadow-sm border border-slate-100">
             Let&apos;s Initiate
           </span>
-          
+
           <h2 className="text-3xl md:text-5xl font-bold text-slate-900 leading-tight mb-4">
-            Let&apos;s Discuss Your <br className="hidden md:block"/> 
+            Let&apos;s Discuss Your <br className="hidden md:block"/>
             Next Big Idea
           </h2>
-          
+
           <p className="text-slate-500 text-lg mb-8 max-w-lg mx-auto lg:mx-0">
             Hundreds of businesses have trusted us. Now it&apos;s your turn to take the leap.
           </p>
 
           {/* Email Input Form */}
-         <div className="relative max-w-md mx-auto lg:mx-0 bg-white p-2 rounded-2xl shadow-lg mb-6">
-  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-    
-    <input
-      type="email"
-      aria-label="Email address"
-      placeholder="Enter your mail .."
-      className="flex-1 bg-transparent px-6 py-3 text-slate-700 placeholder-slate-400 focus:outline-none rounded-full border border-slate-200 sm:border-none"
-    />
+          {status === "sent" ? (
+            <div className="max-w-md mx-auto lg:mx-0 bg-white p-4 rounded-2xl shadow-lg mb-6 flex items-center gap-3 text-left">
+              <CheckCircle2 className="shrink-0 text-green-600" size={22} />
+              <p className="text-slate-700 text-sm">
+                Thanks! We&apos;ll get back to you within 24 hours.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="relative max-w-md mx-auto lg:mx-0 bg-white p-2 rounded-2xl shadow-lg mb-6">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  aria-label="Email address"
+                  placeholder="Enter your mail .."
+                  className="flex-1 bg-transparent px-6 py-3 text-slate-700 placeholder-slate-400 focus:outline-none rounded-full border border-slate-200 sm:border-none"
+                />
 
-    <button className="w-full sm:w-auto bg-[#7C3AED] hover:bg-[#6D28D9] text-white px-6 py-3 rounded-full font-bold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 whitespace-nowrap" aria-label="Get in touch with TechByteX">
-      Get In Touch
-    </button>
-
-  </div>
-</div>
+                <button
+                  type="submit"
+                  disabled={status === "sending"}
+                  className="w-full sm:w-auto bg-[#7C3AED] hover:bg-[#6D28D9] disabled:opacity-60 text-white px-6 py-3 rounded-full font-bold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 whitespace-nowrap"
+                  aria-label="Get in touch with TechByteX"
+                >
+                  {status === "sending" ? "Sending..." : "Get In Touch"}
+                </button>
+              </div>
+              {status === "error" && <p className="px-4 pt-2 text-sm text-red-600 text-left">{error}</p>}
+            </form>
+          )}
 
 
           {/* --- NEW: WhatsApp & Call Options --- */}
@@ -91,7 +119,7 @@ const ContactSection = () => {
   </p>
 
   <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-    
+
     {/* WhatsApp Button */}
     <a
       href="https://wa.me/918827219873"

@@ -2,6 +2,7 @@ import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 import { getCurrentAdmin } from "@/app/lib/auth";
 import { buildGoogleAuthUrl, isConnectionKind } from "@/app/lib/google";
+import { SITE_URL } from "@/app/lib/seo";
 
 const STATE_COOKIE = "tbx_google_oauth_state";
 
@@ -13,7 +14,7 @@ export async function GET(request) {
   }
 
   const kind = new URL(request.url).searchParams.get("kind") || "main";
-  const back = new URL("/admin/settings", request.url);
+  const back = new URL("/admin/settings", SITE_URL);
   if (!isConnectionKind(kind)) {
     back.searchParams.set("google_error", "Unknown connection type.");
     return NextResponse.redirect(back);

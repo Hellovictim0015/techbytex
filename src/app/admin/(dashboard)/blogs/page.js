@@ -48,7 +48,7 @@ export default async function AdminBlogsPage() {
       <div>
         <h1 className="text-2xl font-semibold text-white">AI Blog Pipeline</h1>
         <p className="mt-1 text-sm text-slate-400">
-          AI writes the article, generates a featured image (stored on Cloudinary) and saves it as a
+          AI writes the article, generates a featured image (saved in the uploads folder) and saves it as a
           draft. Nothing goes live until you open it and click Publish.
           {drafts > 0 && <span className="text-amber-300"> {drafts} draft(s) waiting for review.</span>}
         </p>

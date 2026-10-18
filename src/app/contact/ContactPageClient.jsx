@@ -253,8 +253,8 @@ const handleSubmit = async (e) => {
             {/* Decorative Image */}
             <div className="relative h-full min-h-[300px] rounded-3xl overflow-hidden shadow-lg">
               <Image 
-                src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&q=80" 
-                alt="Office Meeting" 
+                src="/techbytex-digital-solutions.webp"
+                alt="TechByteX web, mobile app, UI/UX and custom software projects shown on laptop, tablet and phones"
                 fill 
                 className="absolute inset-0 w-full h-full object-cover"
                 sizes="(max-width: 800px) 100vw, 800px"

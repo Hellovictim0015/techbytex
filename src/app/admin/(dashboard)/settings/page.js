@@ -65,8 +65,9 @@ export default async function AdminSettingsPage({ searchParams }) {
             <div>
               <h2 className="text-sm font-medium text-slate-300">API Keys & Integrations</h2>
               <p className="text-xs text-slate-500">
-                Stored encrypted in the database. Values are never shown back in full once saved —
-                only a masked preview. These override the matching variable in .env.
+                Stored encrypted in the database and shown masked. Use Copy to put a saved value on
+                your clipboard (each copy is recorded in Logs). These override the matching variable
+                in .env.
               </p>
             </div>
             {google === "business_connected" && (

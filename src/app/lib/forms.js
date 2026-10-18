@@ -5,8 +5,12 @@ export const FORM_TYPES = {
   contact: "Contact page",
   book_demo: "Free consultation",
   newsletter: "Newsletter",
+  get_in_touch: "Homepage email",
   other: "Other",
 };
+
+// Forms that collect a name; email-only forms (newsletter, homepage capture) don't.
+const NAME_REQUIRED = new Set(["contact", "book_demo"]);
 
 const MAX_PER_IP_PER_HOUR = 10;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -44,7 +48,7 @@ export function normalizeSubmission(body) {
 
 export function validateSubmission(s) {
   if (!s.email || !EMAIL_RE.test(s.email)) return "Please provide a valid email address.";
-  if (s.formType !== "newsletter" && !s.name) return "Please provide your name.";
+  if (NAME_REQUIRED.has(s.formType) && !s.name) return "Please provide your name.";
   return null;
 }
 

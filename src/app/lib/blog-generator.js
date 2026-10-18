@@ -1,7 +1,7 @@
 import { query } from "./db";
 import { getSecret } from "./secrets";
 import { generateJson } from "./ai";
-import { uploadImageBase64 } from "./cloudinary";
+import { saveUpload } from "./uploads";
 import { sanitizeHtml, stripHtml } from "./sanitize-html";
 import { blogTopics } from "../data/blogTopics";
 import { blogPosts as staticPosts, categories as blogCategories } from "../data/blogData";
@@ -193,9 +193,8 @@ Rules for image_prompt: a clean, modern, professional editorial illustration for
       const b64 = await generateImage(
         draft.image_prompt || `Professional editorial illustration about ${draft.title}, no text`
       );
-      const uploaded = await uploadImageBase64(b64, { folder: "techbytex/blog", publicId: slug });
-      imageUrl = uploaded.url;
-      await logStep(jobId, "image", "success", uploaded.secureUrl);
+      imageUrl = await saveUpload(Buffer.from(b64, "base64"), { folder: "blog", ext: "png", name: slug });
+      await logStep(jobId, "image", "success", imageUrl);
     } catch (error) {
       // A missing image shouldn't throw away a good article — the default OG image is used instead.
       await logStep(jobId, "image", "failed", error.message);

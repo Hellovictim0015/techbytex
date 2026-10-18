@@ -41,3 +41,8 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# Admin-uploaded images (live content, not source code)
+/uploads/**/*
+!/uploads/*/
+!/uploads/*/.gitkeep

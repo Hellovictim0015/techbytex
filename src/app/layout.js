@@ -53,6 +53,11 @@ export const metadata = {
   },
 };
 
+// Tells browsers (incl. "auto dark" modes) the site is light-only.
+export const viewport = {
+  colorScheme: "light",
+};
+
 export default function RootLayout({ children }) {
   return (
     // Added lang="en-IN" for better regional targeting

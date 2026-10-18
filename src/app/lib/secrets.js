@@ -35,9 +35,6 @@ export const INTEGRATION_FIELDS = [
     label: "Business Profile Location ID",
     notSecret: true,
   },
-  { key: "CLOUDINARY_CLOUD_NAME", group: "Cloudinary", label: "Cloud Name", notSecret: true },
-  { key: "CLOUDINARY_API_KEY", group: "Cloudinary", label: "API Key" },
-  { key: "CLOUDINARY_API_SECRET", group: "Cloudinary", label: "API Secret" },
   { key: "CRON_SECRET", group: "Scheduler", label: "Cron Secret" },
 ];
 

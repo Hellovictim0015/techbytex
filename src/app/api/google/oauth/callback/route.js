@@ -1,16 +1,17 @@
 import { NextResponse } from "next/server";
 import { getCurrentAdmin, logAudit, getClientIp } from "@/app/lib/auth";
 import { connectGoogleWithCode, isConnectionKind } from "@/app/lib/google";
+import { SITE_URL } from "@/app/lib/seo";
 
 const STATE_COOKIE = "tbx_google_oauth_state";
 
 export async function GET(request) {
   const url = new URL(request.url);
-  const back = new URL("/admin/settings", request.url);
+  const back = new URL("/admin/settings", SITE_URL);
 
   const admin = await getCurrentAdmin();
   if (!admin) {
-    return NextResponse.redirect(new URL("/admin/login", request.url));
+    return NextResponse.redirect(new URL("/admin/login", SITE_URL));
   }
 
   const [kind, expectedState] = (request.cookies.get(STATE_COOKIE)?.value || "").split(".");

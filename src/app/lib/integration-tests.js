@@ -43,29 +43,6 @@ async function testAnthropic({ getSecret }) {
   ];
 }
 
-async function testCloudinary({ getSecret }) {
-  const [cloud, key, secret] = await Promise.all([
-    getSecret("CLOUDINARY_CLOUD_NAME"),
-    getSecret("CLOUDINARY_API_KEY"),
-    getSecret("CLOUDINARY_API_SECRET"),
-  ]);
-  const unset = [
-    !cloud && "CLOUDINARY_CLOUD_NAME",
-    !key && "CLOUDINARY_API_KEY",
-    !secret && "CLOUDINARY_API_SECRET",
-  ].filter(Boolean);
-  if (unset.length) return [missing("Cloudinary", unset)];
-
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(cloud)}/ping`, {
-    headers: { Authorization: `Basic ${Buffer.from(`${key}:${secret}`).toString("base64")}` },
-  });
-  return [
-    res.ok
-      ? { name: "Cloudinary", ok: true, message: `Connected to cloud "${cloud}".` }
-      : { name: "Cloudinary", ok: false, message: `${res.status}: ${await readError(res)}` },
-  ];
-}
-
 async function testGoogle({ getSecret, getGoogleAccessToken }) {
   const results = [];
 
@@ -211,7 +188,6 @@ const TESTS = {
   AI: async (deps) => [...(await testOpenAI(deps)), ...(await testAnthropic(deps))],
   Google: testGoogle,
   "Google Business": testGoogleBusiness,
-  Cloudinary: testCloudinary,
   Scheduler: testScheduler,
 };
 

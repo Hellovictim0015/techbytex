@@ -9,7 +9,8 @@
     "lint": "eslint",
     "db:migrate": "node scripts/migrate.mjs",
     "admin:create": "node scripts/create-admin.mjs",
-    "blog:import": "node scripts/import-static-blogs.mjs"
+    "blog:import": "node scripts/import-static-blogs.mjs",
+    "portfolio:import": "node scripts/import-portfolio.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",

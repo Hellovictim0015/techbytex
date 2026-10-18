@@ -11,6 +11,8 @@ import {
   Settings,
   ScrollText,
   Inbox,
+  FolderKanban,
+  Briefcase,
 } from "lucide-react";
 import { getCurrentAdmin } from "@/app/lib/auth";
 import LogoutButton from "../LogoutButton";
@@ -23,6 +25,8 @@ const NAV_ITEMS = [
   { href: "/admin/google-business", label: "Google Business", icon: MapPin },
   { href: "/admin/ai", label: "AI", icon: Sparkles },
   { href: "/admin/blogs", label: "Blogs", icon: Newspaper },
+  { href: "/admin/projects", label: "Projects", icon: FolderKanban },
+  { href: "/admin/portfolio", label: "Portfolio", icon: Briefcase },
   { href: "/admin/recommendations", label: "Recommendations", icon: ListChecks },
   { href: "/admin/settings", label: "Settings", icon: Settings },
   { href: "/admin/logs", label: "Logs", icon: ScrollText },

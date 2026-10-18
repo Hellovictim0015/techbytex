@@ -6,8 +6,10 @@ import Brand from '../com/Brand'
 import Services from '../com/Services'
 import PortfolioSection from '../com/PortfolioSection'
 import ContactSection from '../com/ContactSection'
+import { getVisibleProjects } from '../lib/projects'
 
-function Homee() {
+async function Homee() {
+  const projects = await getVisibleProjects()
   return (
     <div>
         <HeroSection/>
@@ -16,7 +18,7 @@ function Homee() {
     <TechnologyPartners/>
     <PartnersSection/>
     <Services/>
-    <PortfolioSection/>
+    <PortfolioSection projects={projects}/>
     <ContactSection/>
     </div>
   )

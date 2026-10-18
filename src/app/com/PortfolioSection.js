@@ -4,53 +4,14 @@ import Image from "next/image";
 import { ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 
-// Placeholder Data
-const projects = [
-  {
-    id: 1,
-    title: "Florestawud",
-    subtitle: "E-Commerce Website",
-    image: "/Screenshot 2026-01-11 191907.png",
-    link: "#"
-  },
-  {
-    id: 2,
-    title: "MCQ Exam",
-    subtitle: "App",
-    image: "/Screenshot 2025-07-30 035239.png",
-    link: "#"
-  },
-  {
-    id: 3,
-    title: "ग्राम पंचायत बिहार",
-    subtitle: "piblic service website",
-    image: "/Screenshot 2026-01-11 192900.png",
-    link: "#"
-  },
-  {
-    id: 4,
-    title: "StoreNSource",
-    subtitle: "E-Commerce Website",
-    image: "/Screenshot 2026-01-11 192542.png",
-    link: "#"
-  },
-  {
-    id: 5,
-    title: "Indian expoeters",
-    subtitle: "Manufacturing website",
-    image: "/Screenshot 2026-01-11 193241.png",
-    link: "#"
-  },
-  {
-    id: 6,
-    title: "Spa",
-    subtitle: "website",
-    image: "/Screenshot 2026-01-11 195839.png",
-    link: "#"
-  }
-];
+// Local images (public/ and /uploads) go through next/image; any external URL
+// an admin pastes is shown as-is.
+const canOptimize = (src) => src.startsWith("/");
 
-const PortfolioSection = () => {
+// Projects come from Admin → Projects (passed in by the homepage).
+const PortfolioSection = ({ projects = [] }) => {
+  if (projects.length === 0) return null;
+
   return (
     <section className="py-16 bg-white overflow-hidden font-sans">
       <div className="container mx-auto px-4 mb-10 text-center">
@@ -79,10 +40,16 @@ const PortfolioSection = () => {
           whileHover={{ animationPlayState: "paused" }} 
         >
           {/* Duplicate items 4 times to ensure seamless loop on large screens */}
-          {[...projects, ...projects, ...projects, ...projects].map((project, index) => (
-            <div 
+          {[...projects, ...projects, ...projects, ...projects].map((project, index) => {
+            const Card = project.link ? "a" : "div";
+            const linkProps = project.link
+              ? { href: project.link, target: "_blank", rel: "noopener", "aria-label": `${project.title} — open live project` }
+              : {};
+            return (
+            <Card
               key={index}
-              className="relative w-[260px] h-[340px] rounded-xl overflow-hidden group cursor-pointer border border-slate-100 shadow-sm flex-shrink-0"
+              {...linkProps}
+              className={`relative block w-[260px] h-[340px] rounded-xl overflow-hidden group border border-slate-100 shadow-sm flex-shrink-0 ${project.link ? "cursor-pointer" : "cursor-default"}`}
             >
               {/* Image */}
               <Image
@@ -91,6 +58,7 @@ const PortfolioSection = () => {
                 fill
                 sizes="260px"
                 loading="lazy"
+                unoptimized={!canOptimize(project.image)}
                 className="object-contain transition-transform duration-700 group-hover:scale-110"
               />
 
@@ -111,15 +79,18 @@ const PortfolioSection = () => {
                         {project.subtitle}
                       </p>
                     </div>
-                    <div className="bg-[#7C3AED] p-1.5 rounded-full text-white shadow-md">
-                      <ExternalLink size={12} />
-                    </div>
+                    {project.link && (
+                      <div className="bg-[#7C3AED] p-1.5 rounded-full text-white shadow-md">
+                        <ExternalLink size={12} />
+                      </div>
+                    )}
                   </div>
                 </div>
 
               </div>
-            </div>
-          ))}
+            </Card>
+            );
+          })}
         </motion.div>
       </div>
 

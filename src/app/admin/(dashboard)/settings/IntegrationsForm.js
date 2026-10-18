@@ -5,6 +5,28 @@ function FieldRow({ field, status, onSaved }) {
   const [value, setValue] = useState("");
   const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
+  const [copyState, setCopyState] = useState("idle");
+
+  async function handleCopy() {
+    try {
+      let text = value.trim();
+      if (!text) {
+        const res = await fetch("/api/admin/integrations/reveal", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: field.key }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.error || "Copy failed");
+        text = data.value;
+      }
+      await navigator.clipboard.writeText(text);
+      setCopyState("copied");
+    } catch {
+      setCopyState("error");
+    }
+    setTimeout(() => setCopyState("idle"), 2000);
+  }
 
   async function handleSave() {
     if (!value.trim()) return;
@@ -62,6 +84,15 @@ function FieldRow({ field, status, onSaved }) {
         >
           {justSaved ? "Saved" : "Save"}
         </button>
+        {(status?.configured || value.trim()) && (
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="rounded-md bg-slate-800 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-700"
+          >
+            {copyState === "copied" ? "Copied" : copyState === "error" ? "Failed" : "Copy"}
+          </button>
+        )}
         {status?.configured && status.source === "admin" && (
           <button
             type="button"

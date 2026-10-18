@@ -9,6 +9,10 @@ export const metadata = createMetadata({
   path: "/",
 });
 
+// Re-reads homepage projects from the database at most every 5 minutes;
+// admin changes also refresh it immediately.
+export const revalidate = 300;
+
 export default function Home() {
   return (
     <>

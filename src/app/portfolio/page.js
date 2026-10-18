@@ -2,6 +2,7 @@ import React from 'react'
 import OurProjects from '../newcom/OurProjects'
 import JsonLd from '../components/JsonLd'
 import { breadcrumbSchema, createMetadata } from '../lib/seo'
+import { getVisiblePortfolio } from '../lib/portfolio'
 
 export const metadata = createMetadata({
   title: "Portfolio",
@@ -11,11 +12,15 @@ export const metadata = createMetadata({
   keywords: ["software development portfolio", "website development projects", "app development projects"],
 })
 
-function page() {
+// Projects are managed from Admin → Portfolio; admin changes refresh this page immediately.
+export const revalidate = 300
+
+async function page() {
+  const projects = await getVisiblePortfolio()
   return (
     <>
       <JsonLd data={breadcrumbSchema([{ name: "Home", path: "/" }, { name: "Portfolio", path: "/portfolio" }])} />
-      <OurProjects/>
+      <OurProjects projects={projects}/>
     </>
   )
 }
