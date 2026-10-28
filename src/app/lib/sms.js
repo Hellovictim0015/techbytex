@@ -1,5 +1,4 @@
 import { query } from "./db";
-import { getSecret } from "./secrets";
 
 const FAST2SMS_URL = "https://www.fast2sms.com/dev/bulkV2";
 const BUSINESS_SETTING = "marketing_business";
@@ -49,14 +48,15 @@ export function fillTemplate(text, contact, business) {
 
 export const isPersonalised = (text) => /\{name\}/.test(text);
 
+// Fast2SMS is configured only in the server env file (.env / .env.local).
 export async function getSmsConfig() {
-  const [apiKey, senderId, templateId, whatsappMessageId] = await Promise.all([
-    getSecret("FAST2SMS_API_KEY"),
-    getSecret("FAST2SMS_SENDER_ID"),
-    getSecret("FAST2SMS_TEMPLATE_ID"),
-    getSecret("FAST2SMS_WHATSAPP_MESSAGE_ID"),
-  ]);
-  return { apiKey, senderId, templateId, whatsappMessageId };
+  const env = process.env;
+  return {
+    apiKey: env.FAST2SMS_API_KEY || "",
+    senderId: env.FAST2SMS_SENDER_ID || "",
+    templateId: env.FAST2SMS_TEMPLATE_ID || "",
+    whatsappMessageId: env.FAST2SMS_WHATSAPP_MESSAGE_ID || "",
+  };
 }
 
 function fast2SmsResult(res, data) {
@@ -115,12 +115,12 @@ async function callFast2Sms({ apiKey, route, senderId, templateId, text, numbers
 }
 
 function assertConfig(config, route) {
-  if (!config.apiKey) throw new Error("Fast2SMS API key is not set (Settings → SMS).");
+  if (!config.apiKey) throw new Error("Fast2SMS API key is not set (add it to the server env file).");
   if (route === "dlt" && (!config.senderId || !config.templateId)) {
-    throw new Error("DLT Sender ID and Template ID are required for the DLT route (Settings → SMS).");
+    throw new Error("DLT Sender ID and Template ID are required for the DLT route (add it to the server env file).");
   }
   if (route === "whatsapp" && !config.whatsappMessageId) {
-    throw new Error("WhatsApp template Message ID is not set (Settings → SMS).");
+    throw new Error("WhatsApp template Message ID is not set (add it to the server env file).");
   }
 }
 

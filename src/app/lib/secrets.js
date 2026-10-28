@@ -36,11 +36,6 @@ export const INTEGRATION_FIELDS = [
     notSecret: true,
   },
   { key: "CRON_SECRET", group: "Scheduler", label: "Cron Secret" },
-  // Bulk SMS from Admin → Marketing.
-  { key: "FAST2SMS_API_KEY", group: "SMS (Fast2SMS)", label: "Fast2SMS API Key" },
-  { key: "FAST2SMS_SENDER_ID", group: "SMS (Fast2SMS)", label: "DLT Sender ID (header, e.g. TECHBX)", notSecret: true },
-  { key: "FAST2SMS_TEMPLATE_ID", group: "SMS (Fast2SMS)", label: "DLT Template / Message ID", notSecret: true },
-  { key: "FAST2SMS_WHATSAPP_MESSAGE_ID", group: "SMS (Fast2SMS)", label: "WhatsApp template Message ID (e.g. 40350)", notSecret: true },
 ];
 
 const ALLOWED_KEYS = new Set(INTEGRATION_FIELDS.map((f) => f.key));

@@ -2,7 +2,6 @@
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const PLACEHOLDERS = ["name", "business", "phone", "website", "details"];
 const inputCls =
   "w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:opacity-50";
 const btnPrimary = "rounded-md bg-violet-700 px-4 py-2 text-sm font-medium text-white hover:bg-violet-600 disabled:opacity-50";
@@ -113,94 +112,43 @@ function summarise(contacts) {
   return { valid, invalid, duplicates };
 }
 
-function fill(text, contact, business) {
-  const values = {
-    name: contact?.name || "Customer",
-    business: business.name || "",
-    phone: business.phone || "",
-    website: business.website || "",
-    details: business.details || "",
-  };
-  return text.replace(/\{(\w+)\}/g, (m, k) => (k in values ? values[k] : m));
-}
+// Approved Fast2SMS WhatsApp template "techbytex_services_offer" (Message ID
+// from FAST2SMS_WHATSAPP_MESSAGE_ID). {{1}} is filled with each contact's name.
+const TEMPLATE_VARIABLES = "{name}";
+const TEMPLATE_BODY = `Hi {{1}} 👋
 
-function smsParts(text) {
-  const unicode = /[^\x00-\x7F]/.test(text);
-  const single = unicode ? 70 : 160;
-  const multi = unicode ? 67 : 153;
-  return text.length <= single ? 1 : Math.ceil(text.length / multi);
-}
+Grow your business online with *TechByteX Software Solutions*.
 
-function istHour() {
-  return Number(new Intl.DateTimeFormat("en-IN", { hour: "numeric", hour12: false, timeZone: "Asia/Kolkata" }).format(new Date()));
-}
+We build:
+✅ Business Websites & Online Stores
+✅ Android & iOS Mobile Apps
+✅ Custom Software, CRM & Billing Systems
+✅ AI Chatbots & Automation
+
+Get a *free consultation* and a clear, fixed quote for your project.
+
+📞 Call / WhatsApp: 8827219873
+🌐 www.techbytex.in`;
 
 // --- sections ----------------------------------------------------------------
 
-function BusinessCard({ business, setBusiness }) {
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState(null);
-  const set = (k) => (e) => setBusiness((b) => ({ ...b, [k]: e.target.value }));
-
-  async function save() {
-    setSaving(true);
-    setMessage(null);
-    try {
-      await api("/api/admin/marketing/business", { method: "POST", body: business });
-      setMessage({ ok: true, text: "Saved." });
-    } catch (error) {
-      setMessage({ ok: false, text: error.message });
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900 p-5 space-y-3">
-      <div>
-        <p className="text-sm text-white">1. Business details</p>
-        <p className="text-xs text-slate-500">
-          Used in messages as {"{business}"}, {"{phone}"}, {"{website}"} and {"{details}"}.
-        </p>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-3">
-        <input value={business.name} onChange={set("name")} placeholder="Business name (TechByteX)" className={inputCls} />
-        <input value={business.phone} onChange={set("phone")} placeholder="Phone (8827219873)" className={inputCls} />
-        <input value={business.website} onChange={set("website")} placeholder="Website (techbytex.in)" className={inputCls} />
-      </div>
-      <input value={business.details} onChange={set("details")} placeholder="Offer / extra details (e.g. Website from Rs 15,000)" className={inputCls} />
-      <div className="flex items-center gap-3">
-        <button type="button" onClick={save} disabled={saving} className={btnGhost}>
-          {saving ? "Saving..." : "Save details"}
-        </button>
-        {message && <span className={`text-xs ${message.ok ? "text-emerald-300" : "text-red-300"}`}>{message.text}</span>}
-      </div>
-    </div>
-  );
-}
-
-function Composer({ business, config, onCreated }) {
+function Composer({ config, onCreated }) {
   const [name, setName] = useState("");
   const [contacts, setContacts] = useState([]);
   const [manual, setManual] = useState("");
   const [fileName, setFileName] = useState("");
-  const [route, setRoute] = useState(config.whatsappMessageId ? "whatsapp" : config.dlt ? "dlt" : "q");
-  const [message, setMessage] = useState(config.whatsappMessageId || config.dlt ? "{name}" : "Hi {name}, {business} builds websites & apps for your business. {details} Call {phone} / {website}");
   const [consent, setConsent] = useState(false);
   const [testPhone, setTestPhone] = useState("");
   const [busy, setBusy] = useState(null);
   const [status, setStatus] = useState(null);
-  const textRef = useRef(null);
 
   const manualContacts = useMemo(
     () => rowsToContacts(manual.split(/\r?\n/).filter(Boolean).map((l) => l.split(/[,\t;]/))),
     [manual]
   );
   const summary = useMemo(() => summarise([...contacts, ...manualContacts]), [contacts, manualContacts]);
-  const preview = fill(message, summary.valid[0], business);
-  const hour = istHour();
-  // The 10 AM – 9 PM rule is for promotional SMS; WhatsApp isn't bound by it.
-  const outsideHours = route !== "whatsapp" && (hour < 10 || hour >= 21);
+  const preview = TEMPLATE_BODY.replace("{{1}}", summary.valid[0]?.name || "Customer");
+  const ready = config.apiKey && config.whatsappMessageId;
 
   async function onFile(e) {
     const file = e.target.files?.[0];
@@ -225,18 +173,15 @@ function Composer({ business, config, onCreated }) {
     }
   }
 
-  function insert(token) {
-    const el = textRef.current;
-    const at = el?.selectionStart ?? message.length;
-    setMessage((m) => `${m.slice(0, at)}{${token}}${m.slice(at)}`);
-  }
-
   async function sendTest() {
     setBusy("test");
     setStatus(null);
     try {
-      await api("/api/admin/marketing/test", { method: "POST", body: { phone: testPhone, route, message } });
-      setStatus({ ok: true, text: `Test ${route === "whatsapp" ? "WhatsApp" : "SMS"} sent to ${testPhone}.` });
+      await api("/api/admin/marketing/test", {
+        method: "POST",
+        body: { phone: testPhone, route: "whatsapp", message: TEMPLATE_VARIABLES },
+      });
+      setStatus({ ok: true, text: `Test WhatsApp sent to ${testPhone}.` });
     } catch (error) {
       setStatus({ ok: false, text: error.message });
     } finally {
@@ -245,13 +190,13 @@ function Composer({ business, config, onCreated }) {
   }
 
   async function createAndSend() {
-    if (!confirm(`Send this ${route === "whatsapp" ? "WhatsApp message" : "SMS"} to ${summary.valid.length} numbers? Fast2SMS will charge your wallet.`)) return;
+    if (!confirm(`Send this WhatsApp message to ${summary.valid.length} numbers? Fast2SMS will charge your wallet.`)) return;
     setBusy("send");
     setStatus(null);
     try {
       const { result } = await api("/api/admin/marketing/campaigns", {
         method: "POST",
-        body: { name, route, message, contacts: summary.valid },
+        body: { name, route: "whatsapp", message: TEMPLATE_VARIABLES, contacts: summary.valid },
       });
       onCreated(result.campaignId);
       setContacts([]);
@@ -266,12 +211,16 @@ function Composer({ business, config, onCreated }) {
     }
   }
 
-  const canSend =
-    name.trim() && summary.valid.length > 0 && (route !== "q" || message.trim()) && consent && config.apiKey && !busy;
+  const canSend = name.trim() && summary.valid.length > 0 && consent && ready && !busy;
 
   return (
     <div className="rounded-lg border border-slate-800 bg-slate-900 p-5 space-y-5">
-      <p className="text-sm text-white">2. New SMS campaign</p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-white">1. New WhatsApp campaign</p>
+        <span className={`rounded-full px-2.5 py-0.5 text-[11px] ${ready ? "bg-emerald-900/40 text-emerald-300" : "bg-amber-900/40 text-amber-300"}`}>
+          {ready ? `Template ${config.whatsappMessageId} · techbytex_services_offer` : "WhatsApp template not set up"}
+        </span>
+      </div>
 
       <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Campaign name (e.g. Diwali offer — Raipur shops)" className={inputCls} />
 
@@ -296,45 +245,19 @@ function Composer({ business, config, onCreated }) {
         {summary.valid.length > 0 && <span className="text-slate-500"> · first: {summary.valid[0].name || "(no name)"} {summary.valid[0].phone}</span>}
       </p>
 
-      {/* message */}
+      {/* message preview (fixed approved template) */}
       <div className="space-y-2">
-        <div className="flex flex-wrap items-center gap-3">
-          <select value={route} onChange={(e) => setRoute(e.target.value)} className="rounded-md border border-slate-700 bg-slate-800 px-3 py-1.5 text-sm text-white">
-            <option value="whatsapp">WhatsApp template {config.whatsappMessageId ? `(ID ${config.whatsappMessageId})` : "(not set up)"}</option>
-            <option value="dlt">SMS — DLT template {config.dlt ? `(${config.senderId} / ${config.templateId})` : "(not set up)"}</option>
-            <option value="q">SMS — Quick route (free text)</option>
-          </select>
-          <span className="text-xs text-slate-500">Insert:</span>
-          {PLACEHOLDERS.map((p) => (
-            <button key={p} type="button" onClick={() => insert(p)} className="rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-violet-300 hover:bg-slate-800">
-              {`{${p}}`}
-            </button>
-          ))}
-        </div>
-        <p className="text-xs text-slate-500">
-          {route === "whatsapp"
-            ? "Values for your WhatsApp template's {{1}}, {{2}}… in order, separated by | — e.g. {name} fills {{1}} with each person's name. The rest of the message, header, footer and buttons come from the approved template."
-            : route === "dlt"
-            ? "Values for the {#var#} slots of your approved DLT template, in order, separated by | — e.g. {name}. Leave empty if the template has no {#var#}. The template text itself is fixed by DLT."
-            : "Full message text. Quick route costs more per SMS and is meant for transactional/service messages."}
+        <p className="text-xs text-slate-400">
+          Message — your approved WhatsApp template. Each person sees their own name in place of {"{{1}}"}.
         </p>
-        <textarea ref={textRef} value={message} onChange={(e) => setMessage(e.target.value)} rows={3} className={inputCls} />
-        <div className="rounded-md bg-slate-950/60 px-3 py-2 text-xs text-slate-300">
-          <span className="text-slate-500">Preview ({summary.valid[0]?.name || "Customer"}): </span>
+        <div className="max-w-md rounded-lg rounded-tl-none bg-[#DCF8C6] px-4 py-3 text-sm whitespace-pre-line text-slate-800 shadow">
           {preview}
-          {route === "q" && <span className="text-slate-500"> · {preview.length} chars · {smsParts(preview)} SMS each</span>}
         </div>
       </div>
 
-      {outsideHours && (
-        <p className="rounded-md border border-amber-800 bg-amber-950/40 px-3 py-2 text-xs text-amber-300">
-          It is {hour}:00 IST. Promotional SMS in India are only delivered between 10 AM and 9 PM — messages sent now may be held or dropped.
-        </p>
-      )}
-
       <label className="flex items-start gap-2 text-xs text-slate-300">
         <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5" />
-        These people have agreed to receive messages from my business. (SMS to DND numbers are blocked by operators; WhatsApp users who report spam can get your number restricted.)
+        These people have agreed to receive messages from my business. (Users who report spam can get the WhatsApp number restricted.)
       </label>
 
       <div className="flex flex-wrap items-end gap-3 border-t border-slate-800 pt-4">
@@ -342,7 +265,7 @@ function Composer({ business, config, onCreated }) {
           <p className="text-xs text-slate-400">Test on your own number first</p>
           <div className="flex gap-2">
             <input value={testPhone} onChange={(e) => setTestPhone(e.target.value)} placeholder="98XXXXXXXX" className={`${inputCls} w-40`} />
-            <button type="button" onClick={sendTest} disabled={!testPhone || !config.apiKey || Boolean(busy)} className={btnGhost}>
+            <button type="button" onClick={sendTest} disabled={!testPhone || !ready || Boolean(busy)} className={btnGhost}>
               {busy === "test" ? "Sending..." : "Send test"}
             </button>
           </div>
@@ -419,9 +342,8 @@ function CampaignRow({ c, running, onSend, onRetry }) {
   );
 }
 
-export default function MarketingManager({ campaigns, business: initialBusiness, config }) {
+export default function MarketingManager({ campaigns, config }) {
   const router = useRouter();
-  const [business, setBusiness] = useState({ name: "", phone: "", website: "", details: "", ...initialBusiness });
   const [running, setRunning] = useState(null);
   const [error, setError] = useState("");
   const stopRef = useRef(false);
@@ -456,12 +378,11 @@ export default function MarketingManager({ campaigns, business: initialBusiness,
 
   return (
     <div className="space-y-6">
-      <BusinessCard business={business} setBusiness={setBusiness} />
-      <Composer business={business} config={config} onCreated={send} />
+      <Composer config={config} onCreated={send} />
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <p className="text-sm text-white">3. Campaigns</p>
+          <p className="text-sm text-white">2. Campaigns</p>
           {running && (
             <button type="button" onClick={() => (stopRef.current = true)} className="text-xs text-red-300 hover:underline">
               Pause after this batch

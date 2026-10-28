@@ -184,43 +184,11 @@ async function testScheduler({ getSecret }) {
   ];
 }
 
-async function testFast2Sms({ getSecret }) {
-  const key = await getSecret("FAST2SMS_API_KEY");
-  if (!key) return [missing("Fast2SMS", ["FAST2SMS_API_KEY"])];
-  const res = await fetch("https://www.fast2sms.com/dev/wallet", {
-    method: "POST",
-    headers: { authorization: key },
-  });
-  const data = await res.json().catch(() => ({}));
-  const results = [
-    res.ok && data.return
-      ? { name: "Fast2SMS", ok: true, message: `API key is valid. Wallet balance: ₹${data.wallet ?? "?"}.` }
-      : { name: "Fast2SMS", ok: false, message: `${res.status}: ${data.message || res.statusText}` },
-  ];
-  const [sender, template, whatsapp] = await Promise.all([
-    getSecret("FAST2SMS_SENDER_ID"),
-    getSecret("FAST2SMS_TEMPLATE_ID"),
-    getSecret("FAST2SMS_WHATSAPP_MESSAGE_ID"),
-  ]);
-  results.push(
-    sender && template
-      ? { name: "DLT template", ok: true, message: `Sender ${sender}, template ${template}.` }
-      : { name: "DLT template", ok: false, message: "Sender ID / Template ID not set — DLT SMS route won't work." }
-  );
-  results.push(
-    whatsapp
-      ? { name: "WhatsApp template", ok: true, message: `Message ID ${whatsapp}.` }
-      : { name: "WhatsApp template", ok: false, message: "WhatsApp Message ID not set — WhatsApp route won't work." }
-  );
-  return results;
-}
-
 const TESTS = {
   AI: async (deps) => [...(await testOpenAI(deps)), ...(await testAnthropic(deps))],
   Google: testGoogle,
   "Google Business": testGoogleBusiness,
   Scheduler: testScheduler,
-  "SMS (Fast2SMS)": testFast2Sms,
 };
 
 export const TESTABLE_GROUPS = Object.keys(TESTS);
