@@ -146,14 +146,6 @@ const locationLinks = [
                   <MapPin size={14} />
                 </div>
                 <span className="text-slate-500 group-hover:text-slate-900 transition-colors">
-                 Himalika Apartment, Srinagar Main Road, Garia, Kolkata, 7000152
-                </span>
-              </li>
-              <li className="flex items-start gap-3 group">
-                <div className="mt-1 p-1.5 rounded bg-[#7C3AED]/10 text-[#7C3AED] group-hover:bg-[#7C3AED] group-hover:text-white transition-colors">
-                  <MapPin size={14} />
-                </div>
-                <span className="text-slate-500 group-hover:text-slate-900 transition-colors">
                  Dalli Rajhara,<br/> Chhattisgarh 491228
                 </span>
               </li>
@@ -162,12 +154,6 @@ const locationLinks = [
                   <Phone size={14} />
                 </div>
                 <span className="text-slate-500 group-hover:text-slate-900 transition-colors">+91-8827219873</span>
-              </li>
-               <li className="flex items-center gap-3 group">
-                <div className="p-1.5 rounded bg-[#7C3AED]/10 text-[#7C3AED] group-hover:bg-[#7C3AED] group-hover:text-white transition-colors">
-                  <Phone size={14} />
-                </div>
-                <span className="text-slate-500 group-hover:text-slate-900 transition-colors">+91-9113782087</span>
               </li>
               <li className="flex items-center gap-3 group">
                 <div className="p-1.5 rounded bg-[#7C3AED]/10 text-[#7C3AED] group-hover:bg-[#7C3AED] group-hover:text-white transition-colors">

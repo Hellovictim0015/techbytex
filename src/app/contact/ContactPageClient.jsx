@@ -26,7 +26,7 @@ const contactInfo = [
   {
     icon: <Phone size={24} />,
     title: "Call Us",
-    detail: "+91-8827219873 , +91-9113782087",
+    detail: "+91-8827219873",
     sub: "Mon-Fri, 9am - 6pm EST",
     link: "tel:+918827219873"
   },
