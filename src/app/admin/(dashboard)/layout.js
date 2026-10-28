@@ -14,6 +14,7 @@ import {
   FolderKanban,
   Briefcase,
   MapPinned,
+  MessageSquareText,
   Files,
 } from "lucide-react";
 import { getCurrentAdmin } from "@/app/lib/auth";
@@ -29,6 +30,7 @@ const NAV_ITEMS = [
   { href: "/admin/pages", label: "All Pages", icon: Files },
   { href: "/admin/blogs", label: "Blogs", icon: Newspaper },
   { href: "/admin/location-pages", label: "Location Pages", icon: MapPinned },
+  { href: "/admin/marketing", label: "Marketing", icon: MessageSquareText },
   { href: "/admin/projects", label: "Projects", icon: FolderKanban },
   { href: "/admin/portfolio", label: "Portfolio", icon: Briefcase },
   { href: "/admin/recommendations", label: "Recommendations", icon: ListChecks },
