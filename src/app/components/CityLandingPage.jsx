@@ -89,9 +89,17 @@ const WHY_US = [
   "Post-launch support and maintenance packages available",
 ];
 
-export default function CityLandingPage({ city, serviceLabel = "Website Development" }) {
-  const path = `/web-development-${city.slug}`;
-  const h1 = `${serviceLabel} Company in ${city.name}, Chhattisgarh`;
+// The optional props are used by admin-created location pages ([slug]/page.js);
+// the hand-written Chhattisgarh city pages rely on the defaults.
+export default function CityLandingPage({
+  city,
+  serviceLabel = "Website Development",
+  path = `/web-development-${city.slug}`,
+  h1 = `${serviceLabel} Company in ${city.name}, Chhattisgarh`,
+  heroText,
+  bodyHtml,
+  relatedLinks = [],
+}) {
 
   return (
     <div className="bg-white font-sans">
@@ -123,7 +131,11 @@ export default function CityLandingPage({ city, serviceLabel = "Website Developm
             {h1}
           </h1>
           <p className="text-lg md:text-xl text-slate-500 leading-relaxed max-w-3xl mb-8">
-            {city.tagline}. TechByteX builds fast, SEO-ready websites, ecommerce stores, mobile apps, and custom software for businesses in {city.name} and across {city.district} district.
+            {heroText || (
+              <>
+                {city.tagline}. TechByteX builds fast, SEO-ready websites, ecommerce stores, mobile apps, and custom software for businesses in {city.name} and across {city.district} district.
+              </>
+            )}
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link href="/contact" className="px-8 py-4 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl font-bold shadow-lg shadow-violet-200 transition-all text-center">
@@ -144,6 +156,16 @@ export default function CityLandingPage({ city, serviceLabel = "Website Developm
           ))}
         </div>
       </section>
+
+      {/* Long-form body (location pages only — already sanitized when saved) */}
+      {bodyHtml && (
+        <section className="px-6 pb-16">
+          <div
+            className="max-w-4xl mx-auto prose prose-slate prose-lg prose-headings:text-slate-900 prose-a:text-[#7C3AED]"
+            dangerouslySetInnerHTML={{ __html: bodyHtml }}
+          />
+        </section>
+      )}
 
       {/* Why choose us */}
       <section className="py-20 bg-[#F8FAFC]">
@@ -233,6 +255,22 @@ export default function CityLandingPage({ city, serviceLabel = "Website Developm
               </span>
             ))}
           </div>
+          {relatedLinks.length > 0 && (
+            <div className="mt-10">
+              <h2 className="text-xl font-bold text-slate-900 mb-4">More Services Near You</h2>
+              <div className="flex flex-wrap justify-center gap-3">
+                {relatedLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="px-4 py-2 bg-white border border-[#7C3AED]/30 rounded-full text-sm text-[#7C3AED] hover:bg-[#7C3AED]/5"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

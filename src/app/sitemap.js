@@ -2,12 +2,13 @@ import { getAllBlogPosts } from "./lib/blog-posts";
 import { cities } from "./data/cities";
 import { services } from "./data/services";
 import { SITE_URL } from "./lib/seo";
+import { getPublishedLocationSlugs } from "./lib/location-pages";
 
 // Picks up newly published AI blog posts (refreshed every 5 minutes or on publish).
 export const revalidate = 300;
 
 export default async function sitemap() {
-  const blogPosts = await getAllBlogPosts();
+  const [blogPosts, locationPages] = await Promise.all([getAllBlogPosts(), getPublishedLocationSlugs()]);
   const now = new Date();
   const staticRoutes = [
     { path: "/", changeFrequency: "weekly", priority: 1 },
@@ -42,6 +43,12 @@ export default async function sitemap() {
       lastModified: now,
       changeFrequency: "monthly",
       priority: 0.75,
+    })),
+    ...locationPages.map((page) => ({
+      url: `${SITE_URL}/${page.slug}`,
+      lastModified: new Date(page.updated || now),
+      changeFrequency: "monthly",
+      priority: 0.7,
     })),
     ...blogPosts.map((post) => ({
       url: `${SITE_URL}/blogg/${post.slug}`,

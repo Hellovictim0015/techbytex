@@ -27,7 +27,7 @@ export async function syncAnalytics(days = 28) {
   const range = dateRange(days, 0);
   const dateRanges = [range];
 
-  const [totalsRows, dailyRows, pageRows, sourceRows] = await Promise.all([
+  const [totalsRows, dailyRows, pageRows, sourceRows, cityRows, countryRows] = await Promise.all([
     runReport(propertyId, token, {
       dateRanges,
       metrics: [
@@ -57,6 +57,21 @@ export async function syncAnalytics(days = 28) {
       orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
       limit: 15,
     }),
+    // Where visitors come from — feeds the AI location suggestions.
+    runReport(propertyId, token, {
+      dateRanges,
+      dimensions: [{ name: "city" }, { name: "region" }, { name: "country" }],
+      metrics: [{ name: "activeUsers" }],
+      orderBys: [{ metric: { metricName: "activeUsers" }, desc: true }],
+      limit: 40,
+    }),
+    runReport(propertyId, token, {
+      dateRanges,
+      dimensions: [{ name: "country" }],
+      metrics: [{ name: "activeUsers" }],
+      orderBys: [{ metric: { metricName: "activeUsers" }, desc: true }],
+      limit: 15,
+    }),
   ]);
 
   const t = totalsRows[0]?.metricValues || [];
@@ -84,6 +99,18 @@ export async function syncAnalytics(days = 28) {
     sources: sourceRows.map((r) => ({
       source: r.dimensionValues[0].value,
       sessions: num(r.metricValues[0]),
+    })),
+    cities: cityRows
+      .filter((r) => r.dimensionValues[0].value !== "(not set)")
+      .map((r) => ({
+        city: r.dimensionValues[0].value,
+        region: r.dimensionValues[1].value,
+        country: r.dimensionValues[2].value,
+        users: num(r.metricValues[0]),
+      })),
+    countries: countryRows.map((r) => ({
+      country: r.dimensionValues[0].value,
+      users: num(r.metricValues[0]),
     })),
   };
 
