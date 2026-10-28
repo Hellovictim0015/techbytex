@@ -14,6 +14,7 @@ import {
   FolderKanban,
   Briefcase,
   MapPinned,
+  Files,
 } from "lucide-react";
 import { getCurrentAdmin } from "@/app/lib/auth";
 import LogoutButton from "../LogoutButton";
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/admin/google-business", label: "Google Business", icon: MapPin },
   { href: "/admin/ai", label: "AI", icon: Sparkles },
+  { href: "/admin/pages", label: "All Pages", icon: Files },
   { href: "/admin/blogs", label: "Blogs", icon: Newspaper },
   { href: "/admin/location-pages", label: "Location Pages", icon: MapPinned },
   { href: "/admin/projects", label: "Projects", icon: FolderKanban },

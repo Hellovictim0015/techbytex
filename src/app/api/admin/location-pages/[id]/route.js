@@ -29,6 +29,7 @@ export async function PATCH(req, { params }) {
     );
     revalidatePath(`/${rows[0].slug}`);
     revalidatePath("/sitemap.xml");
+    revalidatePath("/locations");
     await logAudit({
       adminUserId: admin.id,
       action: `location_page_${status}`,
@@ -57,6 +58,7 @@ export async function DELETE(req, { params }) {
     await query("DELETE FROM location_pages WHERE id = ?", [id]);
     revalidatePath(`/${rows[0].slug}`);
     revalidatePath("/sitemap.xml");
+    revalidatePath("/locations");
     await logAudit({
       adminUserId: admin.id,
       action: "location_page_deleted",

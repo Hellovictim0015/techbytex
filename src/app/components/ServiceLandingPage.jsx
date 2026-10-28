@@ -57,6 +57,16 @@ export default function ServiceLandingPage({ service }) {
             <Link href="/contact" className="px-8 py-4 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl font-bold shadow-lg shadow-violet-200 transition-all text-center">
               Get a Free Quote
             </Link>
+            <a
+              href={`https://wa.me/918827219873?text=${encodeURIComponent(
+                `Hi TechByteX, I'd like a price estimate for ${service.title}.`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-8 py-4 bg-[#25D366] hover:bg-[#1ebe5b] text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+            >
+              <MessageSquareText size={18} /> Ask Price on WhatsApp
+            </a>
             <a href="tel:+918827219873" className="px-8 py-4 bg-white border border-slate-200 text-slate-700 hover:border-slate-300 rounded-xl font-semibold transition-all flex items-center justify-center gap-2">
               <PhoneCall size={18} /> +91 8827219873
             </a>
@@ -157,6 +167,9 @@ export default function ServiceLandingPage({ service }) {
           </div>
           <Link href="/web-development-chhattisgarh" className="inline-flex items-center text-sm font-semibold text-[#7C3AED]">
             View all cities we serve <ArrowRight size={14} className="ml-1" />
+          </Link>
+          <Link href="/locations" className="ml-6 inline-flex items-center text-sm font-semibold text-[#7C3AED]">
+            Locations outside Chhattisgarh <ArrowRight size={14} className="ml-1" />
           </Link>
         </div>
       </section>

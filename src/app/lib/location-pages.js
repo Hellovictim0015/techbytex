@@ -35,7 +35,7 @@ const SERVICE_BY_SLUG = new Map(LOCATION_SERVICES.map((s) => [s.slug, s]));
 // page must never shadow (or be shadowed by) one of these.
 const RESERVED_SLUGS = new Set([
   "about", "admin", "api", "blog", "blogg", "book-demo", "contact", "cookie-policy",
-  "portfolio", "privacy", "services", "technology-insights", "terms", "uploads",
+  "locations", "portfolio", "privacy", "services", "technology-insights", "terms", "uploads",
   "app-development-bhilai", "web-development-chhattisgarh",
   ...cities.map((c) => `web-development-${c.slug}`),
 ]);
@@ -96,6 +96,46 @@ export const getPublishedLocationPage = cache(async (slug) => {
     return null;
   }
 });
+
+// Published pages grouped by place, for the /locations hub.
+export async function getPublishedLocationsByPlace() {
+  try {
+    const rows = await query(
+      `SELECT p.slug, p.service_label, p.area_name, l.id AS plan_id, l.country, l.state, l.city
+       FROM location_pages p JOIN location_plans l ON l.id = p.plan_id
+       WHERE p.status = 'published'
+       ORDER BY l.country, l.state, l.city, p.area_name IS NOT NULL, p.service_label, p.area_name`
+    );
+    const places = new Map();
+    for (const r of rows) {
+      if (!places.has(r.plan_id)) {
+        places.set(r.plan_id, { city: r.city, state: r.state, country: r.country, pages: [] });
+      }
+      places.get(r.plan_id).pages.push({
+        href: `/${r.slug}`,
+        label: r.area_name ? `${r.service_label} in ${r.area_name}` : r.service_label,
+      });
+    }
+    return [...places.values()];
+  } catch {
+    return [];
+  }
+}
+
+// City-wide published pages, offered to the AI blog writer as internal links.
+export async function getLocationLinksForBlogs(limit = 25) {
+  try {
+    const rows = await query(
+      `SELECT p.slug, p.service_label, l.city FROM location_pages p JOIN location_plans l ON l.id = p.plan_id
+       WHERE p.status = 'published' AND p.area_name IS NULL
+       ORDER BY FIELD(p.priority, 'high', 'medium', 'low'), p.id DESC LIMIT ?`,
+      [String(limit)]
+    );
+    return rows.map((r) => ({ path: `/${r.slug}`, label: `${r.service_label} in ${r.city}` }));
+  } catch {
+    return [];
+  }
+}
 
 export async function getPublishedLocationSlugs() {
   try {

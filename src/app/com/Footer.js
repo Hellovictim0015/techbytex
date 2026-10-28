@@ -59,6 +59,7 @@ const locationLinks = [
   { label: "Bilaspur", href: "/web-development-bilaspur" },
   { label: "Durg", href: "/web-development-durg" },
   { label: "Bhilai", href: "/web-development-bhilai" },
+  { label: "All Locations", href: "/locations" },
 ];
 
   return (

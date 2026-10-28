@@ -14,6 +14,8 @@ export default async function sitemap() {
     { path: "/", changeFrequency: "weekly", priority: 1 },
     { path: "/services", changeFrequency: "monthly", priority: 0.9 },
     { path: "/web-development-chhattisgarh", changeFrequency: "monthly", priority: 0.9 },
+    { path: "/locations", changeFrequency: "weekly", priority: 0.8 },
+    { path: "/technology-insights", changeFrequency: "monthly", priority: 0.6 },
     { path: "/about", changeFrequency: "monthly", priority: 0.8 },
     { path: "/portfolio", changeFrequency: "weekly", priority: 0.85 },
     { path: "/contact", changeFrequency: "monthly", priority: 0.8 },

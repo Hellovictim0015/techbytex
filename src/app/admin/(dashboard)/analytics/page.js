@@ -73,7 +73,7 @@ export default async function AdminAnalyticsPage() {
                 { key: "views", label: "Views", align: "right", format: fmt.int },
                 { key: "users", label: "Users", align: "right", format: fmt.int },
               ]}
-              rows={snapshot.pages}
+              rows={snapshot.pages.slice(0, 25)}
             />
             <MetricTable
               title="Traffic sources"

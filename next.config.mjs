@@ -28,6 +28,23 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      // One host for search engines and admin cookies: techbytex.in → www.techbytex.in
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "techbytex.in" }],
+        destination: "https://www.techbytex.in/:path*",
+        permanent: true,
+      },
+      // Duplicate article — both targeted the same keyword. Keep the original.
+      {
+        source: "/blogg/business-website-development-complete-2026-checklist",
+        destination: "/blogg/business-website-development-checklist-2026",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

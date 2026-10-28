@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUp, ArrowDown, Pencil, Trash2, Eye, EyeOff, ExternalLink } from "lucide-react";
+import { uploadImage } from "../uploadImage";
 
 const EMPTY = { title: "", subtitle: "", image_url: "", link_url: "", is_visible: true };
 
@@ -24,15 +25,10 @@ function ProjectForm({ initial, onCancel, onSaved }) {
     setUploading(true);
     setError("");
     try {
-      const body = new FormData();
-      body.append("file", file);
-      body.append("folder", "projects");
-      const res = await fetch("/api/admin/upload", { method: "POST", body });
-      const data = await res.json();
-      if (!res.ok || !data.success) setError(data.error || "Upload failed.");
-      else setForm((f) => ({ ...f, image_url: data.url }));
-    } catch {
-      setError("Upload failed.");
+      const url = await uploadImage(file, "projects");
+      setForm((f) => ({ ...f, image_url: url }));
+    } catch (err) {
+      setError(err.message);
     } finally {
       setUploading(false);
       e.target.value = "";

@@ -48,7 +48,8 @@ export async function syncAnalytics(days = 28) {
       dimensions: [{ name: "pagePath" }],
       metrics: [{ name: "screenPageViews" }, { name: "activeUsers" }],
       orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }],
-      limit: 25,
+      // Every page, not just the top few — Admin → All Pages shows views per page.
+      limit: 1000,
     }),
     runReport(propertyId, token, {
       dateRanges,

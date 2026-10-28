@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { query } from "@/app/lib/db";
 import { stripHtml } from "@/app/lib/sanitize-html";
+import { getPageViews } from "@/app/lib/site-pages";
 import BlogStatusButtons from "../BlogStatusButtons";
+import RegenerateImageButton from "../RegenerateImageButton";
 
 export const metadata = {
   title: "Review Blog | TechByteX Admin",
@@ -18,6 +20,8 @@ export default async function AdminBlogReviewPage({ params }) {
   const words = stripHtml(post.content).split(" ").length;
   const faq = Array.isArray(post.faq) ? post.faq : [];
   const keywords = Array.isArray(post.keywords) ? post.keywords : [];
+  const { views, period } = await getPageViews();
+  const traffic = views.get(`/blogg/${post.slug}`);
 
   return (
     <div className="space-y-6">
@@ -38,6 +42,12 @@ export default async function AdminBlogReviewPage({ params }) {
               </>
             )}
           </p>
+          {post.status === "published" && period && (
+            <p className="mt-1 text-sm text-slate-300">
+              {(traffic?.views ?? 0).toLocaleString("en-IN")} views · {(traffic?.users ?? 0).toLocaleString("en-IN")} users
+              <span className="text-xs text-slate-500"> (Google Analytics, {period})</span>
+            </p>
+          )}
         </div>
         <BlogStatusButtons id={post.id} status={post.status} />
       </div>
@@ -65,6 +75,7 @@ export default async function AdminBlogReviewPage({ params }) {
           No featured image (the default site image will be used).
         </div>
       )}
+      <RegenerateImageButton id={post.id} hasImage={Boolean(post.featured_image_url)} />
 
       <div className="rounded-lg bg-white p-6 md:p-10">
         <p className="text-lg text-slate-600 mb-6">{post.excerpt}</p>

@@ -18,6 +18,7 @@ export async function DELETE(req, { params }) {
     await query("DELETE FROM location_plans WHERE id = ?", [id]);
     for (const p of pages) revalidatePath(`/${p.slug}`);
     revalidatePath("/sitemap.xml");
+    revalidatePath("/locations");
     await logAudit({
       adminUserId: admin.id,
       action: "location_plan_deleted",

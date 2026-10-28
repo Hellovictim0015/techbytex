@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Cpu, CheckCircle2, ChevronDown, ChevronUp, ExternalLink, 
@@ -260,9 +261,9 @@ function OurProjects({ projects = [] }) {
            <p className="text-indigo-100 mb-8 max-w-2xl mx-auto relative z-10 text-lg">Partner with TechByteX to transform your ideas into scalable, high-performance digital realities.</p>
            
            <div className="flex flex-col sm:flex-row justify-center gap-4 relative z-10">
-              <a href="/contact" className="px-8 py-4 bg-white text-[#7C3AED] rounded-full font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <Link href="/contact" className="px-8 py-4 bg-white text-[#7C3AED] rounded-full font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                 Get a Free Quote
-              </a>
+              </Link>
               <a href="mailto:hello@techbytex.in" className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-full font-bold hover:bg-white/10 transition-all duration-300">
                 Hire TechByteX
               </a>

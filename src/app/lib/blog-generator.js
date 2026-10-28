@@ -7,8 +7,11 @@ import { blogTopics } from "../data/blogTopics";
 import { blogPosts as staticPosts, categories as blogCategories } from "../data/blogData";
 import { services } from "../data/services";
 import { cities } from "../data/cities";
+import { getLocationLinksForBlogs } from "./location-pages";
 
-export const IMAGE_MODEL = "gpt-image-1-mini";
+export const IMAGE_MODEL = "gpt-image-1";
+const FALLBACK_IMAGE_MODEL = "gpt-image-1-mini";
+const IMAGE_QUALITY = "high";
 
 function slugify(text) {
   return String(text)
@@ -104,18 +107,44 @@ async function logStep(jobId, step, status, message = null) {
   );
 }
 
-async function generateImage(prompt) {
+// Appended to every featured-image prompt so posts get modern, realistic
+// photos instead of dated clip-art style illustrations.
+const PHOTO_STYLE = `Style: photorealistic modern editorial stock photograph. Real people — Indian professionals with natural, varied looks in contemporary business-casual clothing — in a bright, modern, uncluttered setting with current devices (slim laptops, smartphones, large monitors). Shot on a full-frame camera, 35mm lens, soft natural window light, shallow depth of field, true-to-life skin texture and realistic hands, clean neutral colour grading, 3:2 landscape composition.
+Avoid: illustration, cartoon, vector art, 3D render, clip art, vintage or retro look, oversaturated colours, distorted faces or hands, and any text, letters, numbers, logos or watermarks (screens show abstract interfaces only).`;
+
+// Returns { b64, ext } for one featured image. Falls back to the cheaper model
+// if the account has no access to IMAGE_MODEL.
+export async function generateImage(scene) {
   const apiKey = await getSecret("OPENAI_API_KEY");
-  const res = await fetch("https://api.openai.com/v1/images/generations", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model: IMAGE_MODEL, prompt, size: "1536x1024", quality: "medium", n: 1 }),
-  });
-  const data = await res.json();
+  const request = (model) =>
+    fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        prompt: `${scene}\n\n${PHOTO_STYLE}`,
+        size: "1536x1024",
+        quality: IMAGE_QUALITY,
+        output_format: "webp",
+        output_compression: 85,
+        n: 1,
+      }),
+    });
+
+  let res = await request(IMAGE_MODEL);
+  let data = await res.json();
+  if (!res.ok && /model|access|verif/i.test(data?.error?.message || "")) {
+    res = await request(FALLBACK_IMAGE_MODEL);
+    data = await res.json();
+  }
   if (!res.ok) throw new Error(data?.error?.message || `Image generation failed (${res.status})`);
   const b64 = data.data?.[0]?.b64_json;
   if (!b64) throw new Error("Image API returned no image data.");
-  return b64;
+  return { b64, ext: "webp" };
+}
+
+export function imageSceneForPost({ title, excerpt }) {
+  return `A realistic photo that fits a blog article titled "${title}". ${excerpt || ""} Show people actually doing the work the article is about, in a modern Indian business setting.`;
 }
 
 const INTERNAL_LINKS = [
@@ -153,16 +182,22 @@ export async function generateBlogPost({
     await logStep(jobId, "topic", "success", topicTitle);
 
     const categories = blogCategories.filter((c) => c !== "All");
+    // Admin-created city pages (e.g. Indore) get links from new articles too.
+    const internalLinks = [
+      ...INTERNAL_LINKS,
+      ...(await getLocationLinksForBlogs()),
+      { path: "/locations", label: "Locations we serve" },
+    ];
     const system = `You are a senior content writer for TechByteX, a website, app, ecommerce, AI and custom software development company based in Dalli Rajhara, Chhattisgarh, India (phone +91 8827219873, website https://www.techbytex.in). You write genuinely helpful, accurate SEO articles for Indian business owners and startup founders.
 Return ONLY JSON with these keys:
 {"title": string (<= 70 chars), "slug": string (lowercase-hyphenated, <= 70 chars), "excerpt": string (1-2 sentences, <= 200 chars), "category": one of ${JSON.stringify(categories)}, "keywords": string[] (4-8), "meta_title": string (<= 60 chars, ends with "| TechByteX"), "meta_description": string (140-160 chars, includes a call to action), "content_html": string, "faq": [{"q": string, "a": string}] (4-5 items), "image_prompt": string, "image_alt": string (<= 120 chars)}
 Rules for content_html:
 - 1,200-1,800 words. Use only <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>, <a href>, <table>, <thead>, <tbody>, <tr>, <th>, <td>, <blockquote>. No <h1>, no inline styles, no scripts, no images.
 - Start with a short intro paragraph (no heading). Use clear H2 sections and H3 sub-sections. Practical, specific, Indian context (₹ pricing ranges are fine when realistic and clearly approximate).
-- Add 2-4 internal links, chosen only from this list (use the exact path): ${JSON.stringify(INTERNAL_LINKS)}.
+- Add 2-4 internal links, chosen only from this list (use the exact path); prefer a city page only when the article is about that place: ${JSON.stringify(internalLinks)}.
 - End with a short section inviting the reader to contact TechByteX.
 - Do NOT invent statistics, studies, client names, testimonials, awards or reviews. Do NOT put the FAQ inside content_html (it goes in "faq").
-Rules for image_prompt: a clean, modern, professional editorial illustration for the article's featured image, 3:2 landscape, no text, no letters, no logos, no watermarks.`;
+Rules for image_prompt: describe ONE specific, realistic photo scene that matches this article — who is in it (e.g. a young Indian shop owner, a developer and a client), what they are doing, where (a modern office, clinic, retail store, co-working space) and 1-2 key objects. 2-3 plain sentences. Do not describe the art style (a photorealistic style is added automatically) and do not ask for any text in the image.`;
 
     const user = JSON.stringify({
       topic: topicTitle,
@@ -190,10 +225,10 @@ Rules for image_prompt: a clean, modern, professional editorial illustration for
 
     let imageUrl = null;
     try {
-      const b64 = await generateImage(
-        draft.image_prompt || `Professional editorial illustration about ${draft.title}, no text`
+      const { b64, ext } = await generateImage(
+        draft.image_prompt || imageSceneForPost({ title: draft.title, excerpt: draft.excerpt })
       );
-      imageUrl = await saveUpload(Buffer.from(b64, "base64"), { folder: "blog", ext: "png", name: slug });
+      imageUrl = await saveUpload(Buffer.from(b64, "base64"), { folder: "blog", ext, name: slug });
       await logStep(jobId, "image", "success", imageUrl);
     } catch (error) {
       // A missing image shouldn't throw away a good article — the default OG image is used instead.
