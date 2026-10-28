@@ -23,6 +23,7 @@ export async function POST(req) {
     );
 
     revalidatePath("/portfolio");
+    revalidatePath("/");
     await logAudit({
       adminUserId: admin.id,
       action: "portfolio_created",

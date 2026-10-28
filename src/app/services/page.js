@@ -1,6 +1,25 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  Code2,
+  ShoppingCart,
+  Smartphone,
+  Layers,
+  Bot,
+  Apple,
+  Atom,
+  Rocket,
+  Server,
+  Palette,
+  Settings,
+  Cpu,
+  MessageSquareText,
+} from "lucide-react";
 import JsonLd from "../components/JsonLd";
+import ToyPlayground from "../components/services/ToyPlayground";
+import AppCodeExplode from "../components/services/AppCodeExplode";
+import WebsiteBuildScroll from "../components/services/WebsiteBuildScroll";
+import { TechToy, BRAND } from "../components/services/Toys";
 import { services } from "../data/services";
 import { breadcrumbSchema, createMetadata } from "../lib/seo";
 
@@ -12,43 +31,102 @@ export const metadata = createMetadata({
   keywords: ["software development services", "website development services", "app development services"],
 });
 
+// Logo printed on each service toy's T-shirt.
+const SERVICE_ICON = {
+  "website-development": Code2,
+  "ecommerce-development": ShoppingCart,
+  "mobile-app-development": Smartphone,
+  "react-native-development": Layers,
+  "android-app-development": Bot,
+  "ios-app-development": Apple,
+  "react-development": Atom,
+  "nextjs-development": Rocket,
+  "nodejs-development": Server,
+  "ui-ux-design": Palette,
+  "custom-software-development": Settings,
+  "ai-development": Cpu,
+};
+
 export default function ServicesIndexPage() {
   return (
     <div className="bg-white font-sans">
       <JsonLd data={breadcrumbSchema([{ name: "Home", path: "/" }, { name: "Services", path: "/services" }])} />
 
-      <section className="relative py-20 lg:py-28 px-6 mt-16 lg:mt-0 overflow-hidden">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#7C3AED]/5 rounded-full blur-[120px] translate-x-1/2 -translate-y-1/2 pointer-events-none" />
-        <div className="max-w-4xl mx-auto relative z-10 text-center">
-          <span className="inline-block py-1.5 px-4 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] text-xs font-bold tracking-widest uppercase mb-6">
-            What We Do
-          </span>
-          <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6 leading-tight">
-            Our Services
-          </h1>
-          <p className="text-lg md:text-xl text-slate-500 leading-relaxed max-w-2xl mx-auto">
-            End-to-end technology services — from websites and apps to AI and custom software — built by a team that treats SEO and performance as part of the product, not an afterthought.
-          </p>
-        </div>
-      </section>
+      {/* Hero + cards share one stage so the toys play behind both */}
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#7C3AED]/5 via-white to-[#7C3AED]/5" />
+        <div className="absolute -top-40 right-0 h-[600px] w-[600px] rounded-full bg-[#7C3AED]/10 blur-[120px]" />
+        <div className="absolute bottom-0 -left-40 h-[500px] w-[500px] rounded-full bg-[#7C3AED]/5 blur-[120px]" />
+        <ToyPlayground />
 
-      <section className="pb-24 px-6">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service) => (
-            <Link
-              key={service.slug}
-              href={`/services/${service.slug}`}
-              className="group bg-white rounded-2xl p-8 border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-[#7C3AED]/10 hover:-translate-y-1 transition-all duration-300"
-            >
-              <h2 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-[#7C3AED] transition-colors">
-                {service.title}
-              </h2>
-              <p className="text-slate-500 mb-6 leading-relaxed">{service.shortDesc}</p>
-              <span className="inline-flex items-center text-sm font-semibold text-[#7C3AED]">
-                Learn more <ArrowRight size={16} className="ml-1 group-hover:translate-x-1 transition-transform" />
-              </span>
-            </Link>
-          ))}
+        <section className="relative z-10 px-6 py-20 mt-16 lg:mt-0 lg:py-28">
+          <div className="mx-auto max-w-4xl text-center">
+            <span className="mb-6 inline-block rounded-full bg-[#7C3AED]/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#7C3AED]">
+              What We Do
+            </span>
+            <h1 className="mb-6 text-4xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-6xl">
+              Our{" "}
+              <span className="text-[#7C3AED]">Services</span>
+            </h1>
+            <p className="mx-auto max-w-2xl text-lg leading-relaxed text-slate-500 md:text-xl">
+              End-to-end technology services — from websites and apps to AI and custom software — built by a team that treats SEO and performance as part of the product, not an afterthought.
+            </p>
+          </div>
+        </section>
+
+        <section className="relative z-10 px-6 pb-32">
+          <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {services.map((service) => {
+              const Icon = SERVICE_ICON[service.slug] || Code2;
+              return (
+                <Link
+                  key={service.slug}
+                  href={`/services/${service.slug}`}
+                  className="group relative overflow-hidden rounded-2xl border border-white/60 bg-white/70 p-8 shadow-sm backdrop-blur-md transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-[#7C3AED]/15"
+                >
+                  <div className="relative mb-4 origin-bottom transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110">
+                    <TechToy size={58} shirt={BRAND} badge={<Icon size={15} strokeWidth={2.75} />} />
+                  </div>
+                  <h2 className="relative mb-3 text-xl font-bold text-slate-900 transition-colors group-hover:text-[#7C3AED]">
+                    {service.title}
+                  </h2>
+                  <p className="relative mb-6 leading-relaxed text-slate-500">{service.shortDesc}</p>
+                  <span className="relative inline-flex items-center text-sm font-semibold text-[#7C3AED]">
+                    Learn more <ArrowRight size={16} className="ml-1 transition-transform group-hover:translate-x-1" />
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      </div>
+
+      <WebsiteBuildScroll />
+      <AppCodeExplode />
+
+      <section className="px-6 pb-24 pt-10">
+        <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[2.5rem] bg-[#7C3AED] p-12 text-center text-white md:p-16">
+          <div className="absolute -left-16 -top-16 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
+          <div className="absolute -bottom-16 -right-16 h-64 w-64 rounded-full bg-[#6D28D9] blur-3xl" />
+          <div className="relative">
+            <h2 className="mb-4 text-3xl font-bold md:text-4xl">Have an idea? Let&apos;s build it.</h2>
+            <p className="mx-auto mb-8 max-w-2xl text-lg text-white/80">
+              Tell us what you need — website, app or software — and get a clear, fixed quote.
+            </p>
+            <div className="flex flex-col justify-center gap-4 sm:flex-row">
+              <Link href="/contact" className="rounded-full bg-white px-8 py-4 font-bold text-[#7C3AED] shadow-lg transition-all hover:bg-slate-100">
+                Get a Free Quote
+              </Link>
+              <a
+                href={`https://wa.me/918827219873?text=${encodeURIComponent("Hi TechByteX, I'd like a price estimate for my project.")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 rounded-full border border-white/40 px-8 py-4 font-bold text-white transition-all hover:bg-white/10"
+              >
+                <MessageSquareText size={18} /> Ask Price on WhatsApp
+              </a>
+            </div>
+          </div>
         </div>
       </section>
     </div>

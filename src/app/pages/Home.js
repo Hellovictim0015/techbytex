@@ -6,10 +6,11 @@ import Brand from '../com/Brand'
 import Services from '../com/Services'
 import PortfolioSection from '../com/PortfolioSection'
 import ContactSection from '../com/ContactSection'
-import { getVisibleProjects } from '../lib/projects'
+import { getVisiblePortfolio } from '../lib/portfolio'
 
 async function Homee() {
-  const projects = await getVisibleProjects()
+  // Same projects as the /portfolio page (Admin → Portfolio).
+  const projects = await getVisiblePortfolio()
   return (
     <div>
         <HeroSection/>

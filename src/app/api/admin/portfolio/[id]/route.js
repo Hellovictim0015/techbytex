@@ -36,6 +36,7 @@ export async function PATCH(req, { params }) {
     }
 
     revalidatePath("/portfolio");
+    revalidatePath("/");
     await logAudit({
       adminUserId: admin.id,
       action: "portfolio_updated",
@@ -64,6 +65,7 @@ export async function DELETE(req, { params }) {
     await query("DELETE FROM portfolio_projects WHERE id = ?", [id]);
     await removeUploadIfUnused(rows[0].image_url);
     revalidatePath("/portfolio");
+    revalidatePath("/");
     await logAudit({
       adminUserId: admin.id,
       action: "portfolio_deleted",

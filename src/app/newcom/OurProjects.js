@@ -1,290 +1,452 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Cpu, CheckCircle2, ChevronDown, ChevronUp, ExternalLink, 
-  Layers, Smartphone, Globe, ShieldCheck, Zap, MessageCircle, 
-  PlayCircle, Briefcase, UserCheck
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useScroll,
+  useSpring,
+  useTransform,
+  useReducedMotion,
+} from "framer-motion";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Briefcase,
+  CheckCircle2,
+  ChevronDown,
+  Cpu,
+  Globe,
+  Layers,
+  PlayCircle,
+  Smartphone,
+  Target,
+  Lightbulb,
+  TrendingUp,
+  UserCheck,
 } from "lucide-react";
 
-// Projects come from Admin → Portfolio (portfolio_projects table), passed in
-// by app/portfolio/page.js. Empty sections (no link, case study, etc.) are hidden.
-function OurProjects({ projects = [] }) {
-  const [openFeatures, setOpenFeatures] = useState({});
-  const categories = ["All", ...new Set(projects.map((p) => p.category).filter(Boolean))];
-  const [activeFilter, setActiveFilter] = useState("All"); // ✅ Filter State
+const ease = [0.22, 1, 0.36, 1];
+const unoptimized = (src) => typeof src === "string" && !src.startsWith("/");
+const hasCaseStudy = (p) => p.caseStudy?.problem || p.caseStudy?.solution || p.caseStudy?.result;
 
-  const toggleFeatures = (id) => {
-    setOpenFeatures((prev) => ({ ...prev, [id]: !prev[id] }));
+// Image in a browser frame that tilts toward the cursor and drifts slightly
+// with scroll (parallax). Hover shows the live / demo buttons.
+function ProjectVisual({ project, reverse }) {
+  const ref = useRef(null);
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const parallax = useTransform(scrollYProgress, [0, 1], [40, -40]);
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const rotateX = useSpring(useTransform(my, [-0.5, 0.5], [6, -6]), { stiffness: 150, damping: 15 });
+  const rotateY = useSpring(useTransform(mx, [-0.5, 0.5], [-8, 8]), { stiffness: 150, damping: 15 });
+
+  function onMove(e) {
+    if (reduce) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    mx.set((e.clientX - r.left) / r.width - 0.5);
+    my.set((e.clientY - r.top) / r.height - 0.5);
+  }
+  function onLeave() {
+    mx.set(0);
+    my.set(0);
+  }
+
+  // The in-view trigger sits on an unclipped wrapper: a fully clipped element
+  // never counts as visible, so it could never reveal itself.
+  const reveal = {
+    hidden: { clipPath: reverse ? "inset(0% 0% 0% 100%)" : "inset(0% 100% 0% 0%)", opacity: 0 },
+    show: { clipPath: "inset(0% 0% 0% 0%)", opacity: 1, transition: { duration: 1, ease } },
   };
 
-  const filteredProjects = activeFilter === "All" 
-    ? projects 
-    : projects.filter(p => p.category === activeFilter);
+  return (
+    <motion.div
+      ref={ref}
+      initial={reduce ? false : "hidden"}
+      whileInView="show"
+      viewport={{ once: true, margin: "-80px" }}
+      className="relative w-full"
+    >
+      <motion.div variants={reveal} className="relative w-full [perspective:1200px]">
+        {/* soft brand backdrop card behind the frame */}
+        <div
+          className={`absolute -inset-3 top-6 rounded-3xl bg-[#7C3AED]/10 sm:-inset-5 sm:top-8 ${
+            reverse ? "sm:-rotate-2" : "sm:rotate-2"
+          }`}
+        />
+        <motion.div
+          style={reduce ? undefined : { y: parallax, rotateX, rotateY }}
+          onMouseMove={onMove}
+          onMouseLeave={onLeave}
+          className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-[#7C3AED]/15"
+        >
+          <div className="flex h-8 items-center gap-1.5 border-b border-slate-100 bg-slate-50 px-4">
+            <span className="h-2.5 w-2.5 rounded-full bg-slate-300" />
+            <span className="h-2.5 w-2.5 rounded-full bg-slate-300" />
+            <span className="h-2.5 w-2.5 rounded-full bg-slate-300" />
+            {project.link && (
+              <span className="ml-3 truncate rounded bg-white px-2 py-0.5 text-[10px] text-slate-400 ring-1 ring-slate-200">
+                {project.link.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+              </span>
+            )}
+          </div>
+          <div className="relative aspect-[16/10] bg-slate-50">
+            <Image
+              src={project.image}
+              alt={project.altText || project.title}
+              fill
+              sizes="(max-width: 1024px) 100vw, 55vw"
+              unoptimized={unoptimized(project.image)}
+              className="object-contain transition-transform duration-700 group-hover:scale-[1.04]"
+            />
+          </div>
+          {(project.link || project.videoUrl) && (
+            <div className="absolute inset-0 flex items-center justify-center gap-3 bg-slate-900/70 opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100">
+              {project.link && (
+                <a
+                  href={project.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex translate-y-3 items-center gap-2 rounded-xl bg-[#7C3AED] px-5 py-2.5 text-sm font-bold text-white transition-all duration-300 hover:bg-[#6D28D9] group-hover:translate-y-0"
+                >
+                  View Live <ArrowUpRight size={16} />
+                </a>
+              )}
+              {project.videoUrl && (
+                <a
+                  href={project.videoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex translate-y-3 items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-slate-900 transition-all delay-75 duration-300 group-hover:translate-y-0"
+                >
+                  Watch Demo <PlayCircle size={16} />
+                </a>
+              )}
+            </div>
+          )}
+        </motion.div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// Everything that used to make the text column too tall — shown on demand.
+function Details({ project }) {
+  const cs = project.caseStudy || {};
+  const blocks = [
+    { key: "problem", label: "Challenge", Icon: Target, text: cs.problem },
+    { key: "solution", label: "Solution", Icon: Lightbulb, text: cs.solution },
+    { key: "result", label: "Result", Icon: TrendingUp, text: cs.result },
+  ].filter((b) => b.text);
 
   return (
-    // ✅ Added Dark Mode support (dark:bg-slate-900)
-    <section className="py-24 mt-10 lg:mt-0 bg-slate-50 dark:bg-slate-900 font-sans overflow-hidden transition-colors duration-300">
+    <motion.div
+      initial={{ height: 0, opacity: 0 }}
+      animate={{ height: "auto", opacity: 1 }}
+      exit={{ height: 0, opacity: 0 }}
+      transition={{ duration: 0.45, ease }}
+      className="overflow-hidden"
+    >
+      <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
+        <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr]">
+          <div>
+            <h4 className="font-serif text-2xl italic text-slate-900">About the project</h4>
+            {project.description && <p className="mt-3 leading-relaxed text-slate-600">{project.description}</p>}
+            <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
+              {project.role && (
+                <div className="flex items-center gap-2 text-slate-700">
+                  <Briefcase size={16} className="text-[#7C3AED]" /> <dt className="sr-only">Role</dt>
+                  <dd>{project.role}</dd>
+                </div>
+              )}
+              {project.clientType && (
+                <div className="flex items-center gap-2 text-slate-700">
+                  <UserCheck size={16} className="text-[#7C3AED]" /> <dt className="sr-only">Client</dt>
+                  <dd>{project.clientType}</dd>
+                </div>
+              )}
+            </dl>
+            {project.features?.length > 0 && (
+              <>
+                <h5 className="mt-8 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-900">
+                  <Cpu size={16} className="text-[#7C3AED]" /> Key features
+                </h5>
+                <ul className="mt-3 grid gap-x-4 gap-y-2 sm:grid-cols-2">
+                  {project.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-sm text-slate-600">
+                      <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-[#7C3AED]" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+          <div className="space-y-4">
+            {blocks.map(({ key, label, Icon, text }, i) => (
+              <motion.div
+                key={key}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.15 + i * 0.1, duration: 0.4 }}
+                className={`rounded-2xl border p-5 ${
+                  key === "result" ? "border-[#7C3AED]/30 bg-[#7C3AED]/5" : "border-slate-200 bg-slate-50"
+                }`}
+              >
+                <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#7C3AED]">
+                  <Icon size={14} /> {label}
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-slate-700">{text}</p>
+              </motion.div>
+            ))}
+            {project.technologies?.length > 0 && (
+              <div className="rounded-2xl border border-slate-200 p-5">
+                <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#7C3AED]">
+                  <Layers size={14} /> Full tech stack
+                </p>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {project.technologies.map((t) => (
+                    <span key={t} className="rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
-      {/* Background Decor */}
-      <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-white to-transparent dark:from-slate-900 pointer-events-none" />
+function ProjectRow({ project, index }) {
+  const [open, setOpen] = useState(false);
+  const reverse = index % 2 === 1;
+  const number = String(index + 1).padStart(2, "0");
+  const hasMore = Boolean(project.features?.length || hasCaseStudy(project) || project.role || project.clientType);
+  const stagger = {
+    hidden: {},
+    show: { transition: { staggerChildren: 0.08, delayChildren: 0.15 } },
+  };
+  const item = { hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0, transition: { duration: 0.5, ease } } };
 
-      <div className="container max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
-        
-        {/* Header & SEO Keywords */}
-        <div className="text-center mb-16 max-w-3xl mx-auto">
-          <motion.span 
+  return (
+    <motion.article layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.4 }}>
+      <div className={`grid items-center gap-10 lg:grid-cols-[1.15fr_1fr] lg:gap-16 ${reverse ? "lg:[&>*:first-child]:order-2" : ""}`}>
+        <ProjectVisual project={project} reverse={reverse} />
+
+        <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-80px" }}>
+          <motion.div variants={item} className="flex items-center gap-3">
+            <span className="font-serif text-5xl italic leading-none text-[#7C3AED]/25">{number}</span>
+            <span className="flex items-center gap-1.5 rounded-full bg-[#7C3AED]/10 px-3 py-1 text-xs font-bold text-[#7C3AED]">
+              {project.category === "App" ? <Smartphone size={13} /> : <Globe size={13} />}
+              {project.category}
+            </span>
+          </motion.div>
+          <motion.h3 variants={item} className="mt-4 text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
+            {project.title}
+          </motion.h3>
+          {project.subtitle && (
+            <motion.p variants={item} className="mt-1 text-lg font-medium text-[#7C3AED]">
+              {project.subtitle}
+            </motion.p>
+          )}
+          {project.description && (
+            <motion.p variants={item} className="mt-4 line-clamp-3 leading-relaxed text-slate-600">
+              {project.description}
+            </motion.p>
+          )}
+          {project.stats?.length > 0 && (
+            <motion.div variants={item} className="mt-5 flex flex-wrap gap-2">
+              {project.stats.slice(0, 3).map((s) => (
+                <span key={s} className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">
+                  {s}
+                </span>
+              ))}
+            </motion.div>
+          )}
+          {project.technologies?.length > 0 && (
+            <motion.p variants={item} className="mt-5 text-sm text-slate-500">
+              <span className="font-semibold text-slate-700">Built with </span>
+              {project.technologies.slice(0, 4).join(" · ")}
+              {project.technologies.length > 4 && ` +${project.technologies.length - 4}`}
+            </motion.p>
+          )}
+          <motion.div variants={item} className="mt-7 flex flex-wrap gap-3">
+            {project.link && (
+              <a
+                href={project.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#7C3AED] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-[#7C3AED]/25 transition-colors hover:bg-[#6D28D9]"
+              >
+                Visit {project.category} <ArrowUpRight size={16} />
+              </a>
+            )}
+            {hasMore && (
+              <button
+                type="button"
+                onClick={() => setOpen((o) => !o)}
+                aria-expanded={open}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-[#7C3AED]/40 hover:text-[#7C3AED]"
+              >
+                {open ? "Show less" : "View more"}
+                <ChevronDown size={16} className={`transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
+              </button>
+            )}
+          </motion.div>
+        </motion.div>
+      </div>
+
+      <AnimatePresence initial={false}>{open && <Details project={project} />}</AnimatePresence>
+    </motion.article>
+  );
+}
+
+// Projects come from Admin → Portfolio (portfolio_projects table), passed in
+// by app/portfolio/page.js. Empty fields (no link, case study, etc.) are hidden.
+function OurProjects({ projects = [] }) {
+  const categories = ["All", ...new Set(projects.map((p) => p.category).filter(Boolean))];
+  const [activeFilter, setActiveFilter] = useState("All");
+  const filtered = activeFilter === "All" ? projects : projects.filter((p) => p.category === activeFilter);
+  const words = ["Work", "that", "speaks"];
+
+  return (
+    <section className="relative overflow-hidden bg-[#FBFAFF] pb-24 pt-32 font-sans lg:pt-36">
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-[700px] opacity-50"
+        style={{
+          backgroundImage:
+            "linear-gradient(#7C3AED12 1px, transparent 1px), linear-gradient(90deg, #7C3AED12 1px, transparent 1px)",
+          backgroundSize: "36px 36px",
+          maskImage: "linear-gradient(to bottom, black, transparent)",
+        }}
+      />
+      <div className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[900px] -translate-x-1/2 rounded-full bg-[#7C3AED]/10 blur-[120px]" />
+
+      <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
+        {/* Header */}
+        <div className="mx-auto mb-12 max-w-3xl text-center">
+          <motion.span
             initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-block py-1.5 px-4 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#9F7AEA] text-xs font-bold tracking-widest uppercase mb-4"
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-block rounded-full bg-[#7C3AED]/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#7C3AED]"
           >
             Built by TechByteX
           </motion.span>
-          <motion.h2 
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-6"
+          <h1 className="mt-5 text-4xl font-extrabold tracking-tight text-slate-900 md:text-6xl">
+            {words.map((w, i) => (
+              <motion.span
+                key={w}
+                initial={{ opacity: 0, y: 30, filter: "blur(6px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                transition={{ delay: 0.1 + i * 0.12, duration: 0.6, ease }}
+                className="mr-3 inline-block"
+              >
+                {w}
+              </motion.span>
+            ))}
+            <motion.span
+              initial={{ opacity: 0, y: 30, filter: "blur(6px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ delay: 0.5, duration: 0.6, ease }}
+              className="inline-block font-serif font-normal italic text-[#7C3AED]"
+            >
+              for itself
+            </motion.span>
+          </h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            className="mt-6 text-lg leading-relaxed text-slate-500"
           >
-            Showcasing Digital Excellence
-          </motion.h2>
-          <motion.p 
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-lg text-slate-500 dark:text-slate-400 leading-relaxed mb-4"
-          >
-            As a leading force in <strong className="text-slate-700 dark:text-slate-200">React Development and Web Development in India</strong>, we transform complex problems into high-performing, scalable digital solutions.
+            Websites, apps and software TechByteX has designed, built and launched for real businesses — from
+            startups to government portals.
           </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.85 }}
+            className="mt-8 flex justify-center gap-10"
+          >
+            <div>
+              <p className="font-serif text-4xl italic text-[#7C3AED]">{projects.length}</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Projects shown</p>
+            </div>
+            <div className="w-px bg-slate-200" />
+            <div>
+              <p className="font-serif text-4xl italic text-[#7C3AED]">{categories.length - 1}</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Categories</p>
+            </div>
+          </motion.div>
         </div>
 
-        {/* ✅ Filter System */}
-        <div className="flex flex-wrap justify-center gap-3 mb-16">
+        {/* Filters with a sliding active pill */}
+        <div className="mb-20 flex flex-wrap justify-center gap-2">
           {categories.map((cat) => (
             <button
               key={cat}
+              type="button"
               onClick={() => setActiveFilter(cat)}
-              className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
-                activeFilter === cat 
-                  ? "bg-[#7C3AED] text-white shadow-lg shadow-[#7C3AED]/30" 
-                  : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700"
+              className={`relative rounded-full px-5 py-2 text-sm font-semibold transition-colors ${
+                activeFilter === cat ? "text-white" : "border border-slate-200 bg-white text-slate-600 hover:text-[#7C3AED]"
               }`}
             >
-              {cat}
+              {activeFilter === cat && (
+                <motion.span layoutId="portfolio-filter" className="absolute inset-0 rounded-full bg-[#7C3AED] shadow-lg shadow-[#7C3AED]/30" />
+              )}
+              <span className="relative">{cat}</span>
             </button>
           ))}
         </div>
 
-        {/* Projects List */}
-        <div className="space-y-32">
-          {filteredProjects.map((project, index) => (
-            <motion.div
-              key={project.id}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6 }}
-              className={`flex flex-col lg:flex-row gap-12 lg:gap-20 items-center ${
-                index % 2 === 1 ? "lg:flex-row-reverse" : ""
-              }`}
+        {/* Projects */}
+        <div className="space-y-28 lg:space-y-36">
+          <AnimatePresence mode="popLayout">
+            {filtered.map((project, index) => (
+              <ProjectRow key={project.id ?? project.title} project={project} index={index} />
+            ))}
+          </AnimatePresence>
+        </div>
+
+        {/* CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease }}
+          className="relative mt-32 overflow-hidden rounded-[2.5rem] bg-[#7C3AED] p-10 text-center shadow-2xl md:p-16"
+        >
+          <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
+          <div className="absolute -bottom-10 -left-10 h-48 w-48 rounded-full bg-[#6D28D9] blur-2xl" />
+          <h2 className="relative text-3xl font-bold text-white md:text-4xl">Your project could be next.</h2>
+          <p className="relative mx-auto mt-4 max-w-2xl text-lg text-white/80">
+            Tell us what you want to build — website, app or software — and get a clear, fixed quote.
+          </p>
+          <div className="relative mt-8 flex flex-col justify-center gap-4 sm:flex-row">
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 font-bold text-[#7C3AED] shadow-lg transition-transform hover:-translate-y-0.5"
             >
-              
-              {/* Image Side with Hover Effects */}
-              <div className="w-full lg:w-1/2 group perspective relative">
-                
-                {/* ✅ Category Badge over Image */}
-                <div className="absolute top-4 left-4 z-20 flex gap-2">
-                  <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-slate-800 text-xs font-bold rounded-md shadow-sm flex items-center gap-1">
-                    {project.category === "App" ? <Smartphone size={14}/> : <Globe size={14}/>}
-                    {project.category}
-                  </span>
-                  {project.clientType && (
-                  <span className="px-3 py-1 bg-[#7C3AED]/90 backdrop-blur-sm text-white text-xs font-bold rounded-md shadow-sm flex items-center gap-1">
-                    <UserCheck size={14}/> Client: {project.clientType}
-                  </span>
-                  )}
-                </div>
-
-                <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 transform transition-transform duration-500 group-hover:scale-[1.03] group-hover:shadow-3xl group-hover:shadow-[#7C3AED]/20">
-                   <div className="h-8 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center px-4 gap-2">
-                      <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                      <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                      <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                   </div>
-                   <div className="relative aspect-[16/10] bg-slate-50 dark:bg-slate-900 overflow-hidden">
-                      <Image
-                        src={project.image}
-                        alt={project.altText} // ✅ SEO Alt Text
-                        fill
-                        sizes="(max-width: 1024px) 100vw, 50vw"
-                        unoptimized={typeof project.image === "string" && !project.image.startsWith("/")}
-                        className="object-contain transition-transform duration-700 group-hover:scale-105"
-                      />
-                   </div>
-                   
-                   {/* Overlay on Hover */}
-                   {(project.link || project.videoUrl) && (
-                   <div className="absolute inset-0 bg-slate-900/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4 backdrop-blur-sm">
-                      {project.link && (
-                      <a href={project.link} target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-[#7C3AED] text-white rounded-lg font-bold shadow-lg flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 hover:bg-[#6D28D9]">
-                        View Live <ExternalLink size={16} />
-                      </a>
-                      )}
-                      {project.videoUrl && (
-                        <a href={project.videoUrl} target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-white text-slate-900 rounded-lg font-bold shadow-lg flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75 hover:bg-slate-100">
-                          Watch Demo <PlayCircle size={16} />
-                        </a>
-                      )}
-                   </div>
-                   )}
-                </div>
-              </div>
-
-              {/* Content Side */}
-              <div className="w-full lg:w-1/2">
-                
-                {/* ✅ SEO Heading Setup */}
-                <h3 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
-                  {project.title} <span className="text-lg font-medium text-slate-400 block mt-1">{project.subtitle}</span>
-                </h3>
-
-                {/* ✅ Role */}
-                {project.role && (
-                <p className="flex items-center gap-2 text-sm font-semibold text-[#7C3AED] mb-4">
-                  <Briefcase size={16} /> Role: {project.role}
-                </p>
-                )}
-
-                {/* ✅ Highlights / Stats */}
-                {project.stats?.length > 0 && (
-                <div className="flex flex-wrap gap-3 mb-6">
-                  {project.stats.map((stat, i) => (
-                     <span key={i} className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full text-xs font-bold border border-slate-200 dark:border-slate-700">
-                       {stat}
-                     </span>
-                  ))}
-                </div>
-                )}
-
-                {project.description && (
-                <p className="text-slate-600 dark:text-slate-400 text-lg leading-relaxed mb-6 border-l-4 border-[#7C3AED] pl-4">
-                  {project.description}
-                </p>
-                )}
-
-                {/* ✅ Mini Case Study */}
-                {(project.caseStudy?.problem || project.caseStudy?.solution || project.caseStudy?.result) && (
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700 mb-8">
-                  <h4 className="font-bold text-slate-900 dark:text-white mb-2 text-sm uppercase tracking-wider">Project Impact</h4>
-                  {project.caseStudy.problem && <p className="text-sm text-slate-600 dark:text-slate-400 mb-2"><strong>Problem:</strong> {project.caseStudy.problem}</p>}
-                  {project.caseStudy.solution && <p className="text-sm text-slate-600 dark:text-slate-400 mb-2"><strong>Solution:</strong> {project.caseStudy.solution}</p>}
-                  {project.caseStudy.result && <p className="text-sm text-green-600 dark:text-green-400 font-semibold"><strong>Result:</strong> {project.caseStudy.result}</p>}
-                </div>
-                )}
-
-                {/* Tech Stack */}
-                {project.technologies?.length > 0 && (
-                <div className="mb-8">
-                  <h4 className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white mb-3 uppercase tracking-wide">
-                    <Layers size={16} className="text-[#7C3AED]" /> Tech Stack
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {project.technologies.map((tech, i) => (
-                      <span key={i} className="px-3 py-1 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-sm font-medium border border-slate-200 dark:border-slate-600 hover:border-[#7C3AED] transition-colors cursor-default shadow-sm">
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                )}
-
-                {/* ✅ Visible Button (Aside from hover) */}
-                {project.link && (
-                <div className="mb-8 flex gap-4">
-                  <a href={project.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-[#7C3AED] hover:bg-[#6D28D9] transition-colors shadow-md">
-                    Visit {project.category} <ExternalLink size={18} className="ml-2" />
-                  </a>
-                </div>
-                )}
-
-                {/* Features Accordion Mobile / Grid Desktop */}
-                {project.features?.length > 0 && (
-                <div>
-                  <div className="hidden md:block">
-                    <h4 className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white mb-3 uppercase tracking-wide">
-                      <Cpu size={16} className="text-[#7C3AED]" /> Key Features
-                    </h4>
-                    <ul className="grid sm:grid-cols-2 gap-x-4 gap-y-2">
-                      {project.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-400">
-                          <CheckCircle2 size={16} className="text-[#7C3AED] mt-0.5 flex-shrink-0" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="md:hidden border-t border-slate-200 dark:border-slate-700 pt-4">
-                    <button onClick={() => toggleFeatures(project.id)} className="flex items-center justify-between w-full text-slate-900 dark:text-white font-bold text-sm">
-                      View Key Features {openFeatures[project.id] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                    </button>
-                    <AnimatePresence>
-                      {openFeatures[project.id] && (
-                        <motion.ul initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="space-y-2 overflow-hidden pt-3">
-                          {project.features.map((feature, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-400">
-                              <CheckCircle2 size={16} className="text-[#7C3AED] mt-0.5 flex-shrink-0" />
-                              <span>{feature}</span>
-                            </li>
-                          ))}
-                        </motion.ul>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </div>
-                )}
-
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* ✅ Lead Generation & CTA Section */}
-        <div className="mt-32 p-10 bg-[#7C3AED] rounded-3xl shadow-2xl text-center relative overflow-hidden">
-           <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
-           <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-black opacity-10 rounded-full blur-2xl"></div>
-           
-           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 relative z-10">Ready to build something amazing?</h2>
-           <p className="text-indigo-100 mb-8 max-w-2xl mx-auto relative z-10 text-lg">Partner with TechByteX to transform your ideas into scalable, high-performance digital realities.</p>
-           
-           <div className="flex flex-col sm:flex-row justify-center gap-4 relative z-10">
-              <Link href="/contact" className="px-8 py-4 bg-white text-[#7C3AED] rounded-full font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                Get a Free Quote
-              </Link>
-              <a href="mailto:hello@techbytex.in" className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-full font-bold hover:bg-white/10 transition-all duration-300">
-                Hire TechByteX
-              </a>
-           </div>
-        </div>
-
+              Get a Free Quote <ArrowRight size={18} />
+            </Link>
+            <a
+              href={`https://wa.me/918827219873?text=${encodeURIComponent("Hi TechByteX, I want to discuss a project!")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full border-2 border-white/60 px-8 py-4 font-bold text-white transition-colors hover:bg-white/10"
+            >
+              Discuss on WhatsApp
+            </a>
+          </div>
+        </motion.div>
       </div>
-
-      {/* ✅ Floating WhatsApp Button (Lead Gen) */}
-      <a 
-        href="https://wa.me/918827219873?text=Hi%20TechByteX,%20I%20want%20to%20discuss%20a%20project!" 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 p-4 bg-green-500 text-white rounded-full shadow-2xl hover:scale-110 hover:shadow-green-500/50 transition-all duration-300 flex items-center justify-center group"
-      >
-        <MessageCircle size={28} />
-        <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs group-hover:ml-3 group-hover:mr-1 transition-all duration-300 font-bold">
-          Chat with us
-        </span>
-      </a>
-
     </section>
   );
 }
