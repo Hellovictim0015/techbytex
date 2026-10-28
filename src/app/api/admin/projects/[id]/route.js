@@ -39,11 +39,11 @@ export async function PATCH(req, { params }) {
       }
       if (body.image_url !== undefined) {
         sets.push("image_url = ?");
-        values.push(cleanUrl(body.image_url, { required: true }));
+        values.push(cleanUrl(body.image_url, { required: true, label: "Image" }));
       }
       if (body.link_url !== undefined) {
         sets.push("link_url = ?");
-        values.push(cleanUrl(body.link_url));
+        values.push(cleanUrl(body.link_url, { label: "Live link" }));
       }
       if (body.is_visible !== undefined) {
         sets.push("is_visible = ?");

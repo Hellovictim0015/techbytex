@@ -70,7 +70,7 @@ export function portfolioColumnsFromBody(body, { requireAll = false } = {}) {
     cols.title = text(body.title, 255);
     if (!cols.title) throw new Error("Project name is required.");
   }
-  if (has("image_url")) cols.image_url = cleanUrl(body.image_url, { required: true });
+  if (has("image_url")) cols.image_url = cleanUrl(body.image_url, { required: true, label: "Image" });
   if (has("subtitle")) cols.subtitle = text(body.subtitle, 255);
   if (has("seo_heading")) cols.seo_heading = text(body.seo_heading, 255);
   if (has("description")) cols.description = text(body.description, 5000);
@@ -84,8 +84,8 @@ export function portfolioColumnsFromBody(body, { requireAll = false } = {}) {
   if (has("case_problem")) cols.case_problem = text(body.case_problem, 2000);
   if (has("case_solution")) cols.case_solution = text(body.case_solution, 2000);
   if (has("case_result")) cols.case_result = text(body.case_result, 2000);
-  if (has("link_url")) cols.link_url = cleanUrl(body.link_url);
-  if (has("video_url")) cols.video_url = cleanUrl(body.video_url);
+  if (has("link_url")) cols.link_url = cleanUrl(body.link_url, { label: "Live link" });
+  if (has("video_url")) cols.video_url = cleanUrl(body.video_url, { label: "Demo video link" });
   if (body.is_visible !== undefined) cols.is_visible = body.is_visible ? 1 : 0;
   return cols;
 }

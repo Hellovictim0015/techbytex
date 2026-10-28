@@ -16,8 +16,8 @@ export async function POST(req) {
     const title = String(body.title || "").trim().slice(0, 255);
     if (!title) throw new Error("Title is required.");
     const subtitle = String(body.subtitle || "").trim().slice(0, 255) || null;
-    const imageUrl = cleanUrl(body.image_url, { required: true });
-    const linkUrl = cleanUrl(body.link_url);
+    const imageUrl = cleanUrl(body.image_url, { required: true, label: "Image" });
+    const linkUrl = cleanUrl(body.link_url, { label: "Live link" });
 
     const next = await nextSortOrder("projects");
     const result = await query(

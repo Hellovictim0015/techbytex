@@ -28,13 +28,17 @@ export async function getAllProjectsForAdmin() {
   return query("SELECT * FROM projects ORDER BY sort_order ASC, id ASC");
 }
 
-// Image and link values must be a site path or an http(s) URL.
-export function cleanUrl(value, { required = false } = {}) {
+// Image and link values must be a site path or an http(s) URL. A bare domain
+// typed without a scheme ("www.client.com", "youtu.be/abc") gets https:// added.
+export function cleanUrl(value, { required = false, label = "Image" } = {}) {
   const v = String(value ?? "").trim();
   if (!v) {
-    if (required) throw new Error("Image is required.");
+    if (required) throw new Error(`${label} is required.`);
     return null;
   }
   if ((v.startsWith("/") && !v.startsWith("//")) || /^https?:\/\//i.test(v)) return v.slice(0, 1024);
-  throw new Error("URLs must start with https:// (or / for images in the public folder).");
+  if (/^(\/\/)?[a-z0-9-]+(\.[a-z0-9-]+)+(:\d+)?([/?#]\S*)?$/i.test(v)) {
+    return `https://${v.replace(/^\/\//, "")}`.slice(0, 1024);
+  }
+  throw new Error(`${label}: "${v.slice(0, 60)}" is not a valid link. Use https://… (or / for images in the public folder).`);
 }
