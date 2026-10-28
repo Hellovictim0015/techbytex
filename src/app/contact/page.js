@@ -4,11 +4,18 @@ import { breadcrumbSchema, createMetadata, faqPageSchema, SITE_URL } from "../li
 import ContactPageClient from "./ContactPageClient";
 
 export const metadata = createMetadata({
-  title: "Contact TechByteX",
+  title: "Contact Us — Get a Free Quote for Your Website or App",
   description:
-    "Contact TechByteX for app development, website development, ecommerce development, React Native apps, Next.js development, Shopify development, and custom software projects.",
+    "Contact TechByteX in Dalli Rajhara, Chhattisgarh for website development, mobile apps, ecommerce, React Native, Next.js and custom software. Call or WhatsApp +91 8827219873 for a free, fixed quote.",
   path: "/contact",
-  keywords: ["hire app developer", "hire website developer", "software development consultation"],
+  keywords: [
+    "contact TechByteX",
+    "hire app developer",
+    "hire website developer",
+    "website development quote",
+    "software development consultation",
+    "web developer near me Chhattisgarh",
+  ],
 });
 
 export default function ContactPage() {
@@ -22,6 +29,27 @@ export default function ContactPage() {
       name: "TechByteX",
       email: "techbytexsoftware@gmail.com",
       telephone: "+91-8827219873",
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "Dalli Rajhara",
+        addressRegion: "Chhattisgarh",
+        postalCode: "491228",
+        addressCountry: "IN",
+      },
+      contactPoint: {
+        "@type": "ContactPoint",
+        contactType: "sales",
+        telephone: "+91-8827219873",
+        email: "techbytexsoftware@gmail.com",
+        areaServed: "IN",
+        availableLanguage: ["English", "Hindi"],
+        hoursAvailable: {
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+          opens: "09:00",
+          closes: "18:00",
+        },
+      },
     },
   };
 
