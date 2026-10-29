@@ -67,12 +67,16 @@ function parseCsv(text) {
   return rows.filter((r) => r.some((c) => String(c).trim()));
 }
 
-// Finds the name / phone columns from a header row, or guesses them from the data.
+// Finds the name / phone / service columns from a header row, or guesses them
+// from the data (Name, Number, Service when there is no header).
 function rowsToContacts(rows) {
   if (rows.length === 0) return [];
-  const header = rows[0].map((c) => String(c ?? "").toLowerCase().trim());
+  // A first row holding a phone number is data, not a header (a service like
+  // "Mobile App Development" would otherwise look like a "Mobile" column).
+  const header = rows[0].some((c) => normalizePhone(c)) ? [] : rows[0].map((c) => String(c ?? "").toLowerCase().trim());
   let phoneCol = header.findIndex((h) => /(phone|mobile|number|contact|whatsapp|mob)/.test(h));
   let nameCol = header.findIndex((h) => /name/.test(h));
+  let serviceCol = header.findIndex((h) => /(service|enquiry|inquiry|interest|requirement)/.test(h));
   let data = rows;
   if (phoneCol >= 0) data = rows.slice(1);
   else {
@@ -89,10 +93,15 @@ function rowsToContacts(rows) {
     }
     phoneCol = best;
     nameCol = best === 0 ? 1 : 0;
+    serviceCol = width > 2 ? [0, 1, 2].find((c) => c !== phoneCol && c !== nameCol) : -1;
     if (!normalizePhone(rows[0]?.[phoneCol])) data = rows.slice(1);
   }
   if (phoneCol < 0) return [];
-  return data.map((r) => ({ name: String(r[nameCol] ?? "").trim(), phone: String(r[phoneCol] ?? "").trim() }));
+  return data.map((r) => ({
+    name: String(r[nameCol] ?? "").trim(),
+    phone: String(r[phoneCol] ?? "").trim(),
+    service: serviceCol >= 0 ? String(r[serviceCol] ?? "").trim() : "",
+  }));
 }
 
 function summarise(contacts) {
@@ -106,29 +115,35 @@ function summarise(contacts) {
     else if (seen.has(phone)) duplicates++;
     else {
       seen.add(phone);
-      valid.push({ name: c.name, phone });
+      valid.push({ name: c.name, phone, service: c.service });
     }
   }
   return { valid, invalid, duplicates };
 }
 
-// Approved Fast2SMS WhatsApp template "techbytex_services_offer" (Message ID
-// from FAST2SMS_WHATSAPP_MESSAGE_ID). {{1}} is filled with each contact's name.
-const TEMPLATE_VARIABLES = "{name}";
-const TEMPLATE_BODY = `Hi {{1}} 👋
+// Approved Fast2SMS Utility WhatsApp template "techbytex_enquiry_update"
+// (Message ID from FAST2SMS_WHATSAPP_MESSAGE_ID). {{1}} = contact's name,
+// {{2}} = the service they asked about, {{3}} = a reference number (TBX + recipient id).
+const TEMPLATE_NAME = "techbytex_enquiry_update";
+const TEMPLATE_VARIABLES = "{name}|{service}|{ref}";
+const TEMPLATE_BODY = `Hi {{1}},
 
-Grow your business online with *TechByteX Software Solutions*.
+Thank you for contacting TechByteX Software Solutions. We have received your enquiry about {{2}}.
 
-We build:
-✅ Business Websites & Online Stores
-✅ Android & iOS Mobile Apps
-✅ Custom Software, CRM & Billing Systems
-✅ AI Chatbots & Automation
+Your reference number is {{3}}. Our team will call you within 24 hours to discuss your requirements.
 
-Get a *free consultation* and a clear, fixed quote for your project.
+If you need help sooner, reply to this message or call us at +91 8827219873.`;
 
-📞 Call / WhatsApp: 8827219873
-🌐 www.techbytex.in`;
+const SERVICES = [
+  "Website Development",
+  "Mobile App Development",
+  "Ecommerce Website",
+  "Custom Software Development",
+  "CRM / Billing Software",
+  "AI Chatbot & Automation",
+  "UI/UX Design",
+  "SEO & Digital Marketing",
+];
 
 // --- sections ----------------------------------------------------------------
 
@@ -137,6 +152,7 @@ function Composer({ config, onCreated }) {
   const [contacts, setContacts] = useState([]);
   const [manual, setManual] = useState("");
   const [fileName, setFileName] = useState("");
+  const [defaultService, setDefaultService] = useState("");
   const [consent, setConsent] = useState(false);
   const [testPhone, setTestPhone] = useState("");
   const [busy, setBusy] = useState(null);
@@ -147,7 +163,13 @@ function Composer({ config, onCreated }) {
     [manual]
   );
   const summary = useMemo(() => summarise([...contacts, ...manualContacts]), [contacts, manualContacts]);
-  const preview = TEMPLATE_BODY.replace("{{1}}", summary.valid[0]?.name || "Customer");
+  // A contact's own Service column wins; the dropdown fills the blanks.
+  const recipients = summary.valid.map((c) => ({ ...c, service: c.service || defaultService.trim() }));
+  const missingService = recipients.filter((c) => !c.service).length;
+  const first = recipients[0];
+  const preview = TEMPLATE_BODY.replace("{{1}}", first?.name || "Customer")
+    .replace("{{2}}", first?.service || defaultService.trim() || "Website Development")
+    .replace("{{3}}", "TBX0001");
   const ready = config.apiKey && config.whatsappMessageId;
 
   async function onFile(e) {
@@ -179,7 +201,12 @@ function Composer({ config, onCreated }) {
     try {
       await api("/api/admin/marketing/test", {
         method: "POST",
-        body: { phone: testPhone, route: "whatsapp", message: TEMPLATE_VARIABLES },
+        body: {
+          phone: testPhone,
+          route: "whatsapp",
+          message: TEMPLATE_VARIABLES,
+          service: defaultService.trim() || "Website Development",
+        },
       });
       setStatus({ ok: true, text: `Test WhatsApp sent to ${testPhone}.` });
     } catch (error) {
@@ -190,13 +217,13 @@ function Composer({ config, onCreated }) {
   }
 
   async function createAndSend() {
-    if (!confirm(`Send this WhatsApp message to ${summary.valid.length} numbers? Fast2SMS will charge your wallet.`)) return;
+    if (!confirm(`Send this WhatsApp message to ${recipients.length} numbers? Fast2SMS will charge your wallet.`)) return;
     setBusy("send");
     setStatus(null);
     try {
       const { result } = await api("/api/admin/marketing/campaigns", {
         method: "POST",
-        body: { name, route: "whatsapp", message: TEMPLATE_VARIABLES, contacts: summary.valid },
+        body: { name, route: "whatsapp", message: TEMPLATE_VARIABLES, contacts: recipients },
       });
       onCreated(result.campaignId);
       setContacts([]);
@@ -211,44 +238,64 @@ function Composer({ config, onCreated }) {
     }
   }
 
-  const canSend = name.trim() && summary.valid.length > 0 && consent && ready && !busy;
+  const canSend = name.trim() && recipients.length > 0 && missingService === 0 && consent && ready && !busy;
 
   return (
     <div className="rounded-lg border border-slate-800 bg-slate-900 p-5 space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-white">1. New WhatsApp campaign</p>
         <span className={`rounded-full px-2.5 py-0.5 text-[11px] ${ready ? "bg-emerald-900/40 text-emerald-300" : "bg-amber-900/40 text-amber-300"}`}>
-          {ready ? `Template ${config.whatsappMessageId} · techbytex_services_offer` : "WhatsApp template not set up"}
+          {ready ? `Template ${config.whatsappMessageId} · ${TEMPLATE_NAME} · Utility` : "WhatsApp template not set up"}
         </span>
       </div>
 
-      <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Campaign name (e.g. Diwali offer — Raipur shops)" className={inputCls} />
+      <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Campaign name (e.g. Website enquiries — October)" className={inputCls} />
 
       {/* contacts */}
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="space-y-2">
-          <p className="text-xs text-slate-400">Upload sheet (.xlsx or .csv) — needs a Name and a Number / Mobile column</p>
+          <p className="text-xs text-slate-400">Upload sheet (.xlsx or .csv) — Name, Number / Mobile and Service columns</p>
           <label className="flex cursor-pointer items-center justify-center rounded-md border border-dashed border-slate-700 px-4 py-6 text-sm text-slate-400 hover:border-violet-500 hover:text-violet-300">
             {fileName ? `${fileName} — ${contacts.length} rows` : "Click to choose a file"}
             <input type="file" accept=".csv,.xlsx,.xls,text/csv" onChange={onFile} className="hidden" />
           </label>
         </div>
         <div className="space-y-2">
-          <p className="text-xs text-slate-400">…or type / paste, one per line: Name, Number</p>
-          <textarea value={manual} onChange={(e) => setManual(e.target.value)} rows={4} placeholder={"Ramesh, 9876543210\nSuresh, 9123456780"} className={inputCls} />
+          <p className="text-xs text-slate-400">…or type / paste, one per line: Name, Number, Service</p>
+          <textarea value={manual} onChange={(e) => setManual(e.target.value)} rows={4} placeholder={"Ramesh, 9876543210, Website Development\nSuresh, 9123456780, Mobile App Development"} className={inputCls} />
         </div>
       </div>
       <p className="text-xs text-slate-400">
-        <span className="text-emerald-300">{summary.valid.length} valid numbers</span>
+        <span className="text-emerald-300">{recipients.length} valid numbers</span>
         {summary.invalid > 0 && <span className="text-amber-300"> · {summary.invalid} invalid skipped</span>}
         {summary.duplicates > 0 && <span className="text-slate-500"> · {summary.duplicates} duplicates removed</span>}
-        {summary.valid.length > 0 && <span className="text-slate-500"> · first: {summary.valid[0].name || "(no name)"} {summary.valid[0].phone}</span>}
+        {first && <span className="text-slate-500"> · first: {first.name || "(no name)"} {first.phone} {first.service && `· ${first.service}`}</span>}
       </p>
+
+      <div className="space-y-1">
+        <p className="text-xs text-slate-400">Service ({"{{2}}"}) for contacts with no Service in the sheet</p>
+        <input
+          list="marketing-services"
+          value={defaultService}
+          onChange={(e) => setDefaultService(e.target.value)}
+          placeholder="Pick or type, e.g. Website Development"
+          className={`${inputCls} max-w-md`}
+        />
+        <datalist id="marketing-services">
+          {SERVICES.map((s) => (
+            <option key={s} value={s} />
+          ))}
+        </datalist>
+        {missingService > 0 && (
+          <p className="text-xs text-amber-300">{missingService} contacts have no service — pick one above to send.</p>
+        )}
+      </div>
 
       {/* message preview (fixed approved template) */}
       <div className="space-y-2">
         <p className="text-xs text-slate-400">
-          Message — your approved WhatsApp template. Each person sees their own name in place of {"{{1}}"}.
+          Message — your approved WhatsApp template. Each person sees their own name ({"{{1}}"}), service ({"{{2}}"}) and a
+          reference number ({"{{3}}"}, given automatically).
         </p>
         <div className="max-w-md rounded-lg rounded-tl-none bg-[#DCF8C6] px-4 py-3 text-sm whitespace-pre-line text-slate-800 shadow">
           {preview}
@@ -257,7 +304,7 @@ function Composer({ config, onCreated }) {
 
       <label className="flex items-start gap-2 text-xs text-slate-300">
         <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5" />
-        These people have agreed to receive messages from my business. (Users who report spam can get the WhatsApp number restricted.)
+        Everyone in this list sent us an enquiry. (This is a Utility template — sending it to cold lists can get it moved to Marketing or the number restricted.)
       </label>
 
       <div className="flex flex-wrap items-end gap-3 border-t border-slate-800 pt-4">
@@ -271,7 +318,7 @@ function Composer({ config, onCreated }) {
           </div>
         </div>
         <button type="button" onClick={createAndSend} disabled={!canSend} className={`${btnPrimary} ml-auto`}>
-          {busy === "send" ? "Saving..." : `Send to ${summary.valid.length} numbers`}
+          {busy === "send" ? "Saving..." : `Send to ${recipients.length} numbers`}
         </button>
       </div>
       {status && <p className={`text-xs ${status.ok ? "text-emerald-300" : "text-red-300"}`}>{status.text}</p>}
@@ -331,7 +378,7 @@ function CampaignRow({ c, running, onSend, onRetry }) {
               {failed.length === 0 && "No failed numbers."}
               {failed.map((f) => (
                 <p key={f.phone}>
-                  {f.phone} {f.name && `(${f.name})`} — <span className="text-red-300">{f.error_message}</span>
+                  {f.phone} {f.name && `(${f.name})`} · TBX{String(f.id).padStart(4, "0")} —<span className="text-red-300">{f.error_message}</span>
                 </p>
               ))}
             </div>

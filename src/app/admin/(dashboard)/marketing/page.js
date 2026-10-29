@@ -36,7 +36,7 @@ export default async function AdminMarketingPage() {
         <div>
           <h1 className="text-2xl font-semibold text-white">Marketing — Bulk WhatsApp</h1>
           <p className="mt-1 text-sm text-slate-400">
-            Upload a contact sheet and send your approved WhatsApp template to everyone through Fast2SMS.
+            Send the approved enquiry-update WhatsApp template (Utility) to people who contacted you, through Fast2SMS.
           </p>
         </div>
         {/* Static sample in public/ — the exact columns the uploader expects. */}

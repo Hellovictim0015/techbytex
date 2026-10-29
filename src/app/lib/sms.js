@@ -34,19 +34,25 @@ export async function saveBusinessDetails(details, adminUserId) {
   return clean;
 }
 
-// Fills {name}, {business}, {phone}, {website}, {details}.
+// Reference number shown to the contact, e.g. recipient 42 → TBX0042.
+export const referenceFor = (id) => (id ? `TBX${String(id).padStart(4, "0")}` : "TBX0000");
+
+// Fills {name}, {service}, {ref}, {business}, {phone}, {website}, {details}.
+// "|" separates Fast2SMS template variables, so it is stripped from values.
 export function fillTemplate(text, contact, business) {
   const values = {
     name: contact?.name || "Customer",
+    service: contact?.service || "your project",
+    ref: referenceFor(contact?.id),
     business: business?.name || "",
     phone: business?.phone || "",
     website: business?.website || "",
     details: business?.details || "",
   };
-  return String(text).replace(/\{(\w+)\}/g, (m, key) => (key in values ? values[key] : m));
+  return String(text).replace(/\{(\w+)\}/g, (m, key) => (key in values ? String(values[key]).replace(/\|/g, "/") : m));
 }
 
-export const isPersonalised = (text) => /\{name\}/.test(text);
+export const isPersonalised = (text) => /\{(name|service|ref)\}/.test(text);
 
 // Fast2SMS is configured only in the server env file (.env / .env.local).
 export async function getSmsConfig() {
@@ -125,7 +131,7 @@ function assertConfig(config, route) {
 }
 
 // Sends one test SMS — used before a campaign goes out.
-export async function sendTestSms({ phone, route, message }) {
+export async function sendTestSms({ phone, route, message, service }) {
   const number = normalizePhone(phone);
   if (!number) throw new Error("Enter a valid 10-digit Indian mobile number.");
   const config = await getSmsConfig();
@@ -134,7 +140,7 @@ export async function sendTestSms({ phone, route, message }) {
   const result = await callFast2Sms({
     ...config,
     route,
-    text: fillTemplate(message, { name: "Test" }, business),
+    text: fillTemplate(message, { name: "Test", service }, business),
     numbers: [number],
   });
   if (!result.ok) throw new Error(result.error);
@@ -154,7 +160,7 @@ export async function createCampaign({ name, route, message, contacts, adminUser
     const phone = normalizePhone(c?.phone);
     if (!phone || seen.has(phone)) continue;
     seen.add(phone);
-    rows.push([String(c.name ?? "").trim().slice(0, 255) || null, phone]);
+    rows.push([String(c.name ?? "").trim().slice(0, 255) || null, String(c.service ?? "").trim().slice(0, 255) || null, phone]);
   }
   if (rows.length === 0) throw new Error("No valid mobile numbers in the list.");
   if (rows.length > 50000) throw new Error("Too many contacts in one campaign (max 50,000).");
@@ -179,8 +185,8 @@ export async function createCampaign({ name, route, message, contacts, adminUser
   for (let i = 0; i < rows.length; i += 1000) {
     const chunk = rows.slice(i, i + 1000);
     await query(
-      `INSERT INTO sms_recipients (campaign_id, name, phone) VALUES ${chunk.map(() => "(?, ?, ?)").join(", ")}`,
-      chunk.flatMap(([n, p]) => [campaignId, n, p])
+      `INSERT INTO sms_recipients (campaign_id, name, service, phone) VALUES ${chunk.map(() => "(?, ?, ?, ?)").join(", ")}`,
+      chunk.flatMap(([n, s, p]) => [campaignId, n, s, p])
     );
   }
   return { campaignId, total: rows.length };
@@ -213,7 +219,7 @@ export async function sendNextBatch(campaignId) {
   if (!campaign) throw new Error("Campaign not found.");
 
   const recipients = await query(
-    `SELECT id, name, phone FROM sms_recipients WHERE campaign_id = ? AND status = 'pending' ORDER BY id LIMIT ${SEND_BATCH}`,
+    `SELECT id, name, service, phone FROM sms_recipients WHERE campaign_id = ? AND status = 'pending' ORDER BY id LIMIT ${SEND_BATCH}`,
     [campaignId]
   );
   if (recipients.length === 0) return refreshCounts(campaignId);
@@ -279,7 +285,7 @@ export async function listCampaigns() {
 
 export async function getFailedRecipients(campaignId) {
   return query(
-    "SELECT name, phone, error_message FROM sms_recipients WHERE campaign_id = ? AND status = 'failed' ORDER BY id LIMIT 200",
+    "SELECT id, name, phone, error_message FROM sms_recipients WHERE campaign_id = ? AND status = 'failed' ORDER BY id LIMIT 200",
     [campaignId]
   );
 }

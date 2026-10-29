@@ -1,7 +1,7 @@
 import { getCurrentAdmin, logAudit, getClientIp } from "@/app/lib/auth";
 import { createCampaign } from "@/app/lib/sms";
 
-// POST { name, route, message, contacts: [{ name, phone }] } — saves a campaign
+// POST { name, route, message, contacts: [{ name, phone, service }] } — saves a campaign
 // and its recipients. Sending happens batch by batch via /campaigns/:id/send.
 export async function POST(req) {
   const admin = await getCurrentAdmin();

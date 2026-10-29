@@ -8,8 +8,13 @@ export async function POST(req) {
     return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
   try {
-    const { phone, route, message } = await req.json();
-    const result = await sendTestSms({ phone, route, message: String(message || "").slice(0, 2000) });
+    const { phone, route, message, service } = await req.json();
+    const result = await sendTestSms({
+      phone,
+      route,
+      message: String(message || "").slice(0, 2000),
+      service: String(service || "").slice(0, 255),
+    });
     await logAudit({
       adminUserId: admin.id,
       action: "sms_test_sent",
