@@ -12,7 +12,7 @@ import {
 export const metadata = createMetadata({
   title: "Website Development Company in Chhattisgarh (All Cities)",
   description:
-    "TechByteX builds websites, ecommerce stores, mobile apps, and custom software for businesses across Chhattisgarh — Raipur, Bilaspur, Durg, Bhilai, Korba, Jagdalpur, and 15+ more cities.",
+    "TechByteX builds websites, ecommerce stores, mobile apps, and custom software for businesses across Chhattisgarh — Raipur, Bhilai, Durg, Bilaspur and our home town, Dalli Rajhara.",
   path: "/web-development-chhattisgarh",
   keywords: [
     "website development Chhattisgarh",

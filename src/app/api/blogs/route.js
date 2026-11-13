@@ -21,7 +21,7 @@ export async function GET(request) {
       date: post.isoDate,
       readTime: post.readTime,
       featured: post.featured,
-      url: `/blogg/${post.slug}`,
+      url: `/blog/${post.slug}`,
     })),
   });
 }

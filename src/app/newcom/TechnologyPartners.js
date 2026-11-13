@@ -1,19 +1,20 @@
 import React from "react";
 import Image from "next/image";
 
+// Self-hosted logos (public/tech) — no third-party image requests.
 const technologies = [
-  { name: "HTML", logo: "https://upload.wikimedia.org/wikipedia/commons/6/61/HTML5_logo_and_wordmark.svg" },
-  { name: "CSS", logo: "https://upload.wikimedia.org/wikipedia/commons/6/62/CSS3_logo.svg" },
-  { name: "SASS", logo: "https://upload.wikimedia.org/wikipedia/commons/9/96/Sass_Logo_Color.svg" },
-  { name: "Bootstrap", logo: "https://upload.wikimedia.org/wikipedia/commons/b/b2/Bootstrap_logo.svg" },
-  { name: "Tailwind", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d5/Tailwind_CSS_Logo.svg" },
-  { name: "JavaScript", logo: "https://upload.wikimedia.org/wikipedia/commons/6/6a/JavaScript-logo.png" },
-  { name: "Angular", logo: "https://upload.wikimedia.org/wikipedia/commons/c/cf/Angular_full_color_logo.svg" },
-  { name: "Node.js", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d9/Node.js_logo.svg" },
-  { name: "Ionic", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d1/Ionic_Logo.svg" },
-  { name: "React", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg" },
-  { name: "Kotlin", logo: "https://upload.wikimedia.org/wikipedia/commons/7/74/Kotlin_Icon.png" },
-  { name: "Flutter", logo: "https://upload.wikimedia.org/wikipedia/commons/1/17/Google-flutter-logo.png" },
+  { name: "HTML", logo: "/tech/html.svg" },
+  { name: "CSS", logo: "/tech/css.svg" },
+  { name: "SASS", logo: "/tech/sass.svg" },
+  { name: "Bootstrap", logo: "/tech/bootstrap.svg" },
+  { name: "Tailwind", logo: "/tech/tailwind.svg" },
+  { name: "JavaScript", logo: "/tech/javascript.png" },
+  { name: "Angular", logo: "/tech/angular.png" },
+  { name: "Node.js", logo: "/tech/nodejs.svg" },
+  { name: "Ionic", logo: "/tech/ionic.svg" },
+  { name: "React", logo: "/tech/react.svg" },
+  { name: "Kotlin", logo: "/tech/kotlin.png" },
+  { name: "Flutter", logo: "/tech/flutter.png" },
 ];
 
 const TechnologyPartners = () => {
@@ -53,6 +54,7 @@ const TechnologyPartners = () => {
                   alt={tech.name}
                   fill
                   sizes="64px"
+                  unoptimized={tech.logo.endsWith(".svg")}
                   loading="lazy"
                   className="object-contain transition-transform duration-300 hover:scale-105"
                 />

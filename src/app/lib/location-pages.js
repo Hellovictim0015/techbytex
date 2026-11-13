@@ -6,6 +6,7 @@ import { getLatestSeoSnapshot, findOpportunities } from "./search-console";
 import { getLatestAnalyticsSnapshot } from "./analytics";
 import { services } from "../data/services";
 import { cities } from "../data/cities";
+import { isRetiredLocationPath } from "./retired-urls.mjs";
 
 const SUGGESTIONS_REPORT = "location_suggestions";
 const PRIORITIES = new Set(["low", "medium", "high"]);
@@ -131,7 +132,9 @@ export async function getLocationLinksForBlogs(limit = 25) {
        ORDER BY FIELD(p.priority, 'high', 'medium', 'low'), p.id DESC LIMIT ?`,
       [String(limit)]
     );
-    return rows.map((r) => ({ path: `/${r.slug}`, label: `${r.service_label} in ${r.city}` }));
+    return rows
+      .map((r) => ({ path: `/${r.slug}`, label: `${r.service_label} in ${r.city}` }))
+      .filter((l) => !isRetiredLocationPath(l.path));
   } catch {
     return [];
   }
@@ -410,7 +413,10 @@ ${areas.length ? `- Prefer these localities chosen by the admin: ${JSON.stringif
   for (const p of asArray(output.pages)) {
     const service = SERVICE_BY_SLUG.get(p?.service_slug);
     if (!service || !allowedServices.includes(service) || !p.target_keyword) continue;
-    const area = str(p.area, 150) || null;
+    // The AI sometimes writes "null" / "none" for a city-wide page; that must
+    // never become an area (it produced /custom-software-development-null-indore).
+    const rawArea = str(p.area, 150);
+    const area = rawArea && !/^(null|none|n\/a|undefined|-)$/i.test(rawArea) ? rawArea : null;
     const slug = buildSlug(service.slug, city, area);
     if (!slug || taken.has(slug)) {
       skipped.push(slug);

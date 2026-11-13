@@ -1,5 +1,6 @@
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import { BLOG_MERGES } from "./src/app/lib/retired-urls.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -37,12 +38,17 @@ const nextConfig = {
         destination: "https://www.techbytex.in/:path*",
         permanent: true,
       },
-      // Duplicate article — both targeted the same keyword. Keep the original.
-      {
-        source: "/blogg/business-website-development-complete-2026-checklist",
-        destination: "/blogg/business-website-development-checklist-2026",
-        permanent: true,
-      },
+      // Merged duplicate articles → the one post (or page) we kept. Listed
+      // before the /blogg → /blog move so each old URL redirects in one hop.
+      ...Object.entries(BLOG_MERGES).flatMap(([slug, destination]) => [
+        { source: `/blogg/${slug}`, destination, permanent: true },
+        { source: `/blog/${slug}`, destination, permanent: true },
+      ]),
+      // Posts moved from the misspelt /blogg/<slug> to /blog/<slug>.
+      { source: "/blogg", destination: "/blog", permanent: true },
+      { source: "/blogg/:slug", destination: "/blog/:slug", permanent: true },
+      // The locations hub listed pages that are now removed.
+      { source: "/locations", destination: "/web-development-chhattisgarh", permanent: true },
     ];
   },
   async headers() {

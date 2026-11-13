@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { 
   Instagram, 
@@ -8,13 +8,16 @@ import {
   Mail, 
   Phone, 
   MapPin, 
-  ChevronRight 
+  ChevronRight,
+  CheckCircle2
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 const Footer = () => {
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState(null); // null | "sending" | "sent" | error text
 
   if (pathname?.startsWith("/admin")) {
     return null;
@@ -24,13 +27,14 @@ const Footer = () => {
   const socialLinks = [
   {
     icon: Instagram,
-    href: "https://www.instagram.com/techbytexx?igsh=MWU1MGNzcGc3bzFqeg==",
+    href: "https://www.instagram.com/techbytexx",
     label: "TechByteX on Instagram",
   },
   {
     icon: Linkedin,
-    href: "https://www.linkedin.com/in/chandan-bhardwaj-5132a821a?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app",
-    label: "TechByteX on LinkedIn",
+    // Founder's profile until a LinkedIn company page exists.
+    href: "https://www.linkedin.com/in/chandan-bhardwaj-5132a821a",
+    label: "Chandan Bhardwaj, founder of TechByteX, on LinkedIn",
   },
 ];
 
@@ -59,8 +63,26 @@ const locationLinks = [
   { label: "Bilaspur", href: "/web-development-bilaspur" },
   { label: "Durg", href: "/web-development-durg" },
   { label: "Bhilai", href: "/web-development-bhilai" },
-  { label: "All Locations", href: "/locations" },
+  { label: "Dalli Rajhara", href: "/web-development-dalli-rajhara" },
 ];
+
+  async function subscribe(e) {
+    e.preventDefault();
+    setStatus("sending");
+    try {
+      const res = await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, formType: "newsletter" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.error || "Could not subscribe. Please try again.");
+      setStatus("sent");
+      setEmail("");
+    } catch (error) {
+      setStatus(error.message);
+    }
+  }
 
   return (
     <footer className="bg-white text-slate-600 font-sans pt-16 pb-8 border-t border-slate-100">
@@ -154,29 +176,48 @@ const locationLinks = [
                 <div className="p-1.5 rounded bg-[#7C3AED]/10 text-[#7C3AED] group-hover:bg-[#7C3AED] group-hover:text-white transition-colors">
                   <Phone size={14} />
                 </div>
-                <span className="text-slate-500 group-hover:text-slate-900 transition-colors">+91-8827219873</span>
+                <a href="tel:+918827219873" className="text-slate-500 hover:text-slate-900 transition-colors">+91-8827219873</a>
               </li>
               <li className="flex items-center gap-3 group">
                 <div className="p-1.5 rounded bg-[#7C3AED]/10 text-[#7C3AED] group-hover:bg-[#7C3AED] group-hover:text-white transition-colors">
                   <Mail size={14} />
                 </div>
-                <span className="text-slate-500 group-hover:text-slate-900 transition-colors">techbytexsoftware@gmail.com</span>
+                <a href="mailto:techbytexsoftware@gmail.com" className="text-slate-500 hover:text-slate-900 transition-colors break-all">techbytexsoftware@gmail.com</a>
               </li>
             </ul>
 
-            {/* Newsletter Input */}
-            <div className="relative">
-              <label htmlFor="newsletter-email" className="sr-only">Email address</label>
-              <input 
-                id="newsletter-email"
-                type="email" 
-                placeholder="Your email address" 
-                className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg pl-4 pr-12 py-3 focus:outline-none focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED] transition-all placeholder:text-slate-400 shadow-sm"
-              />
-              <button className="absolute right-1.5 top-1.5 p-1.5 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-md transition-colors shadow-sm" aria-label="Subscribe to newsletter">
-                <Send size={16} />
-              </button>
-            </div>
+            {/* Newsletter */}
+            {status === "sent" ? (
+              <p className="flex items-center gap-2 text-sm text-green-700">
+                <CheckCircle2 size={16} /> Subscribed — thank you!
+              </p>
+            ) : (
+              <form onSubmit={subscribe}>
+                <label htmlFor="newsletter-email" className="block text-sm font-medium text-slate-700 mb-2">
+                  Get our tips and updates by email
+                </label>
+                <div className="relative">
+                  <input
+                    id="newsletter-email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg pl-4 pr-12 py-3 focus:outline-none focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED] transition-all placeholder:text-slate-400 shadow-sm"
+                  />
+                  <button
+                    type="submit"
+                    disabled={status === "sending"}
+                    className="absolute right-1.5 top-1.5 p-1.5 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-md transition-colors shadow-sm disabled:opacity-60"
+                    aria-label="Subscribe"
+                  >
+                    <Send size={16} />
+                  </button>
+                </div>
+                {status && status !== "sending" && <p className="mt-2 text-xs text-red-600">{status}</p>}
+              </form>
+            )}
           </div>
 
         </div>
@@ -193,23 +234,19 @@ const locationLinks = [
           </div>
         </div>
 
-        {/* --- Bottom Bar --- */}
-       {/* --- Bottom Bar --- */}
-        <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
+         <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
           
           <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-center sm:text-left">
             <span>&copy; {currentYear} All rights reserved.</span>
             <span className="hidden sm:block text-slate-300">|</span>
             <span className="flex items-center gap-1">
               Designed & Developed by 
-              <a 
-                href="https://techbytex.in" 
-                target="_blank" 
-                rel="noreferrer" 
+              <Link
+                href="/"
                 className="font-bold text-[#7C3AED] hover:text-[#6D28D9] hover:underline transition-colors"
               >
-                TechByteX.in
-              </a>
+                TechByteX
+              </Link>
             </span>
           </div>
 

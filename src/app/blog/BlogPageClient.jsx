@@ -71,7 +71,7 @@ const BlogPage = ({ posts: blogPosts, categories }) => {
           {/* Featured Post */}
           {showFeatured && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative rounded-3xl overflow-hidden group">
-              <Link href={`/blogg/${featuredPost.slug}`} className="grid md:grid-cols-2 bg-slate-900">
+              <Link href={`/blog/${featuredPost.slug}`} className="grid md:grid-cols-2 bg-slate-900">
                 <div className="relative h-72 md:h-auto overflow-hidden">
                   <Image src={featuredPost.image} alt={featuredPost.title} fill className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-700" />
                   <div className="absolute top-6 left-6">
@@ -100,7 +100,7 @@ const BlogPage = ({ posts: blogPosts, categories }) => {
           <AnimatePresence>
             {gridPosts.map((post) => (
               <motion.div layout key={post.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }}>
-                <Link href={`/blogg/${post.slug}`} className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full">
+                <Link href={`/blog/${post.slug}`} className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full">
                   <div className="relative aspect-[16/9] overflow-hidden bg-slate-100">
                     <Image src={post.image} alt={post.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
                     <div className="absolute top-4 left-4">

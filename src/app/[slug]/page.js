@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import CityLandingPage from "../components/CityLandingPage";
 import { createMetadata } from "../lib/seo";
 import { getPublishedLocationPage, toLandingProps } from "../lib/location-pages";
+import { isRetiredLocationPath } from "../lib/retired-urls.mjs";
 
 // Admin-created location pages (Admin → Location Pages), e.g. /web-development-indore.
 // Real folders like /about or /web-development-raipur always win over this
@@ -30,6 +31,8 @@ export async function generateMetadata({ params }) {
 
 export default async function LocationPage({ params }) {
   const { slug } = await params;
+  // middleware.js already answers 410 for these; this is a second guard.
+  if (isRetiredLocationPath(`/${slug}`)) notFound();
   const page = await getPublishedLocationPage(slug);
   if (!page) notFound();
   return <CityLandingPage {...toLandingProps(page)} />;

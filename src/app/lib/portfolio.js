@@ -1,6 +1,7 @@
 import { query } from "./db";
 import { cleanUrl } from "./projects";
 import { portfolioFallback } from "../data/portfolio-fallback";
+import { slugify } from "./slug";
 
 const asArray = (v) => (Array.isArray(v) ? v : []);
 
@@ -8,6 +9,7 @@ const asArray = (v) => (Array.isArray(v) ? v : []);
 function toPublicProject(row) {
   return {
     id: row.id,
+    slug: slugify(row.title),
     title: row.title,
     subtitle: row.subtitle,
     seoHeading: row.seo_heading,
@@ -28,6 +30,12 @@ function toPublicProject(row) {
     link: row.link_url,
     videoUrl: row.video_url,
   };
+}
+
+// One visible project by its case-study slug (/portfolio/<slug>), or null.
+export async function getPortfolioProject(slug) {
+  const projects = await getVisiblePortfolio();
+  return projects.find((p) => p.slug === slug) || null;
 }
 
 // Visible /portfolio projects in admin-defined order; bundled fallback if the

@@ -288,6 +288,14 @@ function ProjectRow({ project, index }) {
                 Visit {project.category} <ArrowUpRight size={16} />
               </a>
             )}
+            {project.slug && (
+              <Link
+                href={`/portfolio/${project.slug}`}
+                className="inline-flex items-center gap-2 rounded-xl border border-[#7C3AED]/30 bg-[#7C3AED]/5 px-5 py-3 text-sm font-semibold text-[#6D28D9] transition-colors hover:bg-[#7C3AED]/10"
+              >
+                Read case study
+              </Link>
+            )}
             {hasMore && (
               <button
                 type="button"

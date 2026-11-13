@@ -41,7 +41,7 @@ async function databasePages() {
 
   const blogPages = blogs
     ? blogs.map((b) => ({
-        path: `/blogg/${b.slug}`,
+        path: `/blog/${b.slug}`,
         title: b.title,
         type: "Blog",
         source: b.generated_by === "ai" ? "admin" : "code",
@@ -50,7 +50,7 @@ async function databasePages() {
         editHref: `/admin/blogs/${b.id}`,
       }))
     : staticPosts.map((b) => ({
-        path: `/blogg/${b.slug}`,
+        path: `/blog/${b.slug}`,
         title: b.title,
         type: "Blog",
         source: "code",

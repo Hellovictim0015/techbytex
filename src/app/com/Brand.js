@@ -1,94 +1,69 @@
-"use client";
 import React from "react";
-import { motion } from "framer-motion";
 import Image from "next/image";
 
-// Placeholder data - Replace 'src' with your actual logo images
+// Logos of businesses we have built for. Alt text is the real client name.
 const logos = [
-  { name: "Balod Eco", src: "/balod.png" },
-  { name: "Rolbol", src: "/adhikar.png" },
-  { name: "OTR", src: "/digi.png" },
-  { name: "Robot Power", src: "/Minimalist Digital Education Logo .png" },
-  { name: "Babylon", src: "/Green and Pink Illustration Henna Artist Logo (1).png" },
-  { name: "Real Budget", src: "/Black Simple Monoline Travel Platform Logo.png" },
-  { name: "Optri", src: "/Black and Gold Simple Online Academy Logo (2).png" },
-  { name: "Pareek", src: "/rrr.png" },
-  { name: "Jefnets", src: "/Frame 1000003961.png" },
-  { name: "Datamatrix", src: "/Morvi Crop Science Logo.png" },
-   { name: "Datamatrix", src: "/bihar.png" },
+  { name: "Balod Eco Tourism", src: "/clients/balod-eco-tourism.png" },
+  { name: "Adhikar Studio", src: "/clients/adhikar-studio.png" },
+  { name: "Adhikar Digitals", src: "/clients/adhikar-digitals.png" },
+  { name: "Test Series Innovator", src: "/clients/test-series-innovator.png" },
+  { name: "Store N Source", src: "/clients/store-n-source.png" },
+  { name: "Tourmate India", src: "/clients/tourmate-india.png" },
+  { name: "JaanoIndia", src: "/clients/jaanoindia.png" },
+  { name: "PHS – People's Health Solution", src: "/clients/phs-peoples-health-solution.png" },
+  { name: "Mining Shiksha", src: "/clients/mining-shiksha.png" },
+  { name: "Morvi Crop Science", src: "/clients/morvi-crop-science.png" },
+  { name: "Gram Panchayat Pura Tikra, Gaya (Bihar)", src: "/clients/gram-panchayat-pura-tikra.png" },
 ];
 
-const MarqueeRow = ({ items, direction = "left", speed = 20 }) => {
-  return (
-    <div className="flex overflow-hidden relative w-full py-4 mask-fade">
-      {/* We duplicate the list to create an infinite seamless loop.
-         The container width must be large enough to hold all items.
-      */}
-      <motion.div
-        className="flex gap-8 flex-shrink-0"
-        initial={{ x: direction === "left" ? "0%" : "-50%" }}
-        animate={{ x: direction === "left" ? "-50%" : "0%" }}
-        transition={{
-          duration: speed,
-          ease: "linear",
-          repeat: Infinity,
-        }}
-      >
-        {/* Render items twice for the loop */}
-        {[...items, ...items].map((logo, index) => (
-          <div
-            key={index}
-            className="w-48 h-20 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center p-4 hover:shadow-md transition-shadow duration-300"
-          >
-            <Image
-              src={logo.src}
-              alt={logo.name}
-              width={160}
-              height={48}
-              loading="lazy"
-              className="max-w-full max-h-full object-contain opacity-80 hover:opacity-100 transition-opacity duration-300"
-            />
-          </div>
-        ))}
-      </motion.div>
-    </div>
-  );
-};
-
+// One row, rendered twice for a seamless CSS loop (the copy is hidden from
+// screen readers). Pauses on hover and for reduced-motion users.
 const Brand = () => {
-  // Split logos into two rows for variety
-  const firstRow = logos.slice(0, 5);
-  const secondRow = logos.slice(5, 10);
-
   return (
     <section className="py-20 bg-slate-50 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 mb-12 text-center">
-        <h2 className="text-3xl font-bold text-slate-800">
-          Partnering with Industry Visionaries
-        </h2>
+        <h2 className="text-3xl font-bold text-slate-800">Businesses we have built for</h2>
         <p className="text-slate-500 mt-2">
-          We work side-by-side with ambitious brands to build the future of technology.
+          Tourism, education, healthcare, agriculture, retail and local government — across Chhattisgarh and India.
         </p>
       </div>
 
-      <div className="space-y-8">
-        {/* Row 1: Moves Left */}
-        <MarqueeRow items={logos} direction="left" speed={30} />
-
-        {/* Row 2: Moves Right */}
-        <MarqueeRow items={[...logos].reverse()} direction="right" speed={35} />
+      <div className="brand-marquee relative w-full py-4">
+        <div className="brand-track flex w-max gap-8">
+          {[0, 1].map((copy) => (
+            <ul key={copy} className="flex shrink-0 gap-8" aria-hidden={copy === 1 ? "true" : undefined}>
+              {logos.map((logo) => (
+                <li
+                  key={logo.src}
+                  className="w-48 h-20 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center p-4"
+                >
+                  <Image
+                    src={logo.src}
+                    alt={copy === 0 ? logo.name : ""}
+                    width={160}
+                    height={48}
+                    sizes="160px"
+                    loading="lazy"
+                    className="max-w-full max-h-full w-auto h-auto object-contain"
+                  />
+                </li>
+              ))}
+            </ul>
+          ))}
+        </div>
       </div>
 
-      {/* CSS Mask to fade edges */}
-      <style jsx global>{`
-        .mask-fade {
-          mask-image: linear-gradient(
-            to right,
-            transparent,
-            black 10%,
-            black 90%,
-            transparent
-          );
+      <style>{`
+        .brand-marquee {
+          mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        }
+        .brand-track { animation: brand-scroll 40s linear infinite; }
+        .brand-marquee:hover .brand-track { animation-play-state: paused; }
+        @keyframes brand-scroll { to { transform: translateX(calc(-50% - 1rem)); } }
+        @media (prefers-reduced-motion: reduce) {
+          .brand-track { animation: none; flex-wrap: wrap; justify-content: center; width: 100%; }
+          .brand-track > ul[aria-hidden] { display: none; }
+          .brand-track > ul { flex-wrap: wrap; justify-content: center; }
         }
       `}</style>
     </section>

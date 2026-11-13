@@ -13,7 +13,7 @@ async function Homee() {
   const projects = await getVisiblePortfolio()
   return (
     <div>
-        <HeroSection/>
+        <HeroSection projects={projects}/>
 
         <Brand/>
     <TechnologyPartners/>

@@ -74,7 +74,7 @@ const ContactSection = () => {
           </h2>
 
           <p className="text-slate-500 text-lg mb-8 max-w-lg mx-auto lg:mx-0">
-            Hundreds of businesses have trusted us. Now it&apos;s your turn to take the leap.
+            Share your email and we will reply within 24 hours with ideas and a clear, fixed quote.
           </p>
 
           {/* Email Input Form */}

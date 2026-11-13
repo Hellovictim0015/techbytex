@@ -74,9 +74,9 @@ const ConsultationForm = () => {
         <span className="inline-block py-1 px-3 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] text-sm font-semibold mb-4">
           Get Started
         </span>
-        <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
           Book Your Free Consultation
-        </h2>
+        </h1>
         <p className="text-lg text-slate-600 max-w-2xl mx-auto">
           Tell us a little about your project. We&apos;ll review your needs and get back
           to you within 24 hours to schedule a chat.

@@ -27,7 +27,7 @@ export default async function BlogPage() {
       "@type": "BlogPosting",
       headline: post.title,
       description: post.excerpt,
-      url: `${SITE_URL}/blogg/${post.slug}`,
+      url: `${SITE_URL}/blog/${post.slug}`,
       image: post.image.startsWith("http") ? post.image : `${SITE_URL}${post.image}`,
       author: {
         "@type": "Person",

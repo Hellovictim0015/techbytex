@@ -32,7 +32,8 @@ async function load() {
       getPageViews(),
     ]);
     const withViews = posts.map((p) => {
-      const v = pageViews.views.get(`/blogg/${p.slug}`);
+      // Posts moved from /blogg to /blog; older analytics still use the old path.
+      const v = pageViews.views.get(`/blog/${p.slug}`) || pageViews.views.get(`/blogg/${p.slug}`);
       return { ...p, views: v?.views ?? 0, users: v?.users ?? 0 };
     });
     return { ok: true, posts: withViews, jobs, suggested, topicSuggestions, viewsPeriod: pageViews.period };
@@ -156,7 +157,7 @@ export default async function AdminBlogsPage({ searchParams }) {
                       {p.title}
                     </Link>
                     <p className="text-xs text-slate-500">
-                      /blogg/{p.slug}
+                      /blog/{p.slug}
                       {!p.featured_image_url && " · no image"}
                       {p.featured_image_url && needsImage(p) && <span className="text-amber-300"> · placeholder image</span>}
                       {p.is_featured ? " · featured" : ""}

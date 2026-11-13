@@ -79,7 +79,7 @@ const TAGS = [
   { label: "Custom software development", href: "/services/custom-software-development" },
   { label: "AI chatbot development", href: "/services/ai-development" },
   { label: "UI/UX design company", href: "/services/ui-ux-design" },
-  { label: "Locations we serve", href: "/locations" },
+  { label: "Website development in Chhattisgarh", href: "/web-development-chhattisgarh" },
 ];
 
 const PaperGrid = ({ className = "" }) => (

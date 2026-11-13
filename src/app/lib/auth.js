@@ -6,7 +6,9 @@ import { query } from "./db";
 const SESSION_COOKIE = "tbx_admin_session";
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const LOGIN_WINDOW_MINUTES = 15;
-const LOGIN_MAX_ATTEMPTS = 8;
+const LOGIN_MAX_ATTEMPTS = 5; // per IP
+const LOGIN_MAX_ATTEMPTS_TOTAL = 20; // all IPs together — stops spread-out guessing
+const MIN_PASSWORD_LENGTH = 12;
 
 function hashToken(token) {
   const secret = process.env.ADMIN_SESSION_SECRET;
@@ -15,14 +17,25 @@ function hashToken(token) {
     : createHash("sha256").update(token).digest("hex");
 }
 
-// Admin login is a single PIN. Override it with ADMIN_PIN in the environment
-// (.env / Vercel) to change it without a code change.
-const ADMIN_PIN = process.env.ADMIN_PIN || "1180";
+// Admin login is a single password set only in the server env file
+// (ADMIN_PASSWORD; the older ADMIN_PIN name still works). There is no default:
+// this repository is public, so a password written in code is no password.
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.ADMIN_PIN || "";
 const PIN_ADMIN_EMAIL = "admin@techbytex.in";
 
+// Why login is switched off, or null when the password is usable.
+export function adminPasswordProblem() {
+  if (!ADMIN_PASSWORD) return "Admin login is disabled: set ADMIN_PASSWORD in the server env file.";
+  if (ADMIN_PASSWORD.length < MIN_PASSWORD_LENGTH) {
+    return `Admin login is disabled: ADMIN_PASSWORD must be at least ${MIN_PASSWORD_LENGTH} characters.`;
+  }
+  return null;
+}
+
 export function verifyPin(pin) {
+  if (adminPasswordProblem()) return false;
   const a = createHash("sha256").update(String(pin ?? "")).digest();
-  const b = createHash("sha256").update(ADMIN_PIN).digest();
+  const b = createHash("sha256").update(ADMIN_PASSWORD).digest();
   return timingSafeEqual(a, b);
 }
 
@@ -58,12 +71,11 @@ export async function getClientIp() {
 
 export async function isLoginRateLimited(ip) {
   const rows = await query(
-    `SELECT COUNT(*) AS attempts FROM admin_audit_logs
-     WHERE action = 'admin_login_failed' AND ip_address = ?
-       AND created_at > (NOW() - INTERVAL ? MINUTE)`,
+    `SELECT COUNT(*) AS total, SUM(ip_address = ?) AS fromIp FROM admin_audit_logs
+     WHERE action = 'admin_login_failed' AND created_at > (NOW() - INTERVAL ? MINUTE)`,
     [ip, LOGIN_WINDOW_MINUTES]
   );
-  return rows[0].attempts >= LOGIN_MAX_ATTEMPTS;
+  return Number(rows[0].fromIp) >= LOGIN_MAX_ATTEMPTS || Number(rows[0].total) >= LOGIN_MAX_ATTEMPTS_TOTAL;
 }
 
 export async function findAdminByEmail(email) {

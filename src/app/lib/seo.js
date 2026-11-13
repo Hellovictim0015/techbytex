@@ -12,15 +12,33 @@ export const targetKeywords = [
   "custom software development",
 ];
 
+// One name / address / phone (NAP) for every schema block. Keep it identical
+// to the Google Business Profile.
+export const BUSINESS = {
+  name: SITE_NAME,
+  legalName: "TechByteX Software Solutions",
+  telephone: "+91-8827219873",
+  email: "techbytexsoftware@gmail.com",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Dalli Rajhara",
+    addressRegion: "Chhattisgarh",
+    postalCode: "491228",
+    addressCountry: "IN",
+  },
+  sameAs: ["https://www.instagram.com/techbytexx", "https://www.linkedin.com/in/chandan-bhardwaj-5132a821a"],
+};
+
 export function absoluteUrl(path = "/") {
   return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+// `keywords` is accepted for older callers but not output: Google ignores the
+// meta keywords tag.
 export function createMetadata({
   title,
   description,
   path = "/",
-  keywords = [],
   image = DEFAULT_OG_IMAGE,
   type = "website",
   publishedTime,
@@ -35,7 +53,6 @@ export function createMetadata({
   return {
     title: fullTitle,
     description: metaDescription,
-    keywords: [...new Set([...targetKeywords, ...keywords])],
     alternates: {
       canonical,
     },
@@ -70,15 +87,16 @@ export function organizationSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: SITE_NAME,
+    "@id": `${SITE_URL}/#organization`,
+    name: BUSINESS.name,
+    legalName: BUSINESS.legalName,
     url: SITE_URL,
     logo: absoluteUrl("/hello.png"),
-    email: "techbytexsoftware@gmail.com",
-    telephone: "+91-8827219873",
-    sameAs: [
-      "https://www.instagram.com/techbytexx",
-      "https://www.linkedin.com/in/chandan-bhardwaj-5132a821a",
-    ],
+    email: BUSINESS.email,
+    telephone: BUSINESS.telephone,
+    address: BUSINESS.address,
+    founder: { "@type": "Person", name: "Chandan Bhardwaj" },
+    sameAs: BUSINESS.sameAs,
     areaServed: ["India", "Chhattisgarh", "Raipur", "Bhilai", "Dalli Rajhara", "Durg"],
     knowsAbout: targetKeywords,
   };
@@ -86,24 +104,22 @@ export function organizationSchema() {
 
 export function localBusinessSchema({
   cityName,
-  path = "/",
   areaServed,
 } = {}) {
   return {
     "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    name: cityName ? `${SITE_NAME} - Website Development in ${cityName}` : SITE_NAME,
+    "@type": "ProfessionalService",
+    "@id": `${SITE_URL}/#business`,
+    // Same name and address everywhere — a city page only changes areaServed.
+    name: BUSINESS.name,
+    legalName: BUSINESS.legalName,
     image: absoluteUrl("/hello.png"),
-    url: absoluteUrl(path),
-    telephone: "+91-8827219873",
-    email: "techbytexsoftware@gmail.com",
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: "Dalli Rajhara",
-      addressRegion: "Chhattisgarh",
-      postalCode: "491228",
-      addressCountry: "IN",
-    },
+    url: SITE_URL,
+    telephone: BUSINESS.telephone,
+    email: BUSINESS.email,
+    address: BUSINESS.address,
+    sameAs: BUSINESS.sameAs,
+    parentOrganization: { "@id": `${SITE_URL}/#organization` },
     areaServed: areaServed || cityName || "Chhattisgarh",
     priceRange: "$$",
     openingHours: "Mo-Sa 09:00-18:00",

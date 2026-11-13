@@ -27,7 +27,7 @@ export async function GET(request, { params }) {
       author: post.author?.name,
       content: post.content,
       faq: post.faq || [],
-      url: `/blogg/${post.slug}`,
+      url: `/blog/${post.slug}`,
     },
   });
 }

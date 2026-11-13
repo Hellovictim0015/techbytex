@@ -182,12 +182,8 @@ export async function generateBlogPost({
     await logStep(jobId, "topic", "success", topicTitle);
 
     const categories = blogCategories.filter((c) => c !== "All");
-    // Admin-created city pages (e.g. Indore) get links from new articles too.
-    const internalLinks = [
-      ...INTERNAL_LINKS,
-      ...(await getLocationLinksForBlogs()),
-      { path: "/locations", label: "Locations we serve" },
-    ];
+    // Only kept location pages are offered (see lib/retired-urls.mjs).
+    const internalLinks = [...INTERNAL_LINKS, ...(await getLocationLinksForBlogs())];
     const system = `You are a senior content writer for TechByteX, a website, app, ecommerce, AI and custom software development company based in Dalli Rajhara, Chhattisgarh, India (phone +91 8827219873, website https://www.techbytex.in). You write genuinely helpful, accurate SEO articles for Indian business owners and startup founders.
 Return ONLY JSON with these keys:
 {"title": string (<= 70 chars), "slug": string (lowercase-hyphenated, <= 70 chars), "excerpt": string (1-2 sentences, <= 200 chars), "category": one of ${JSON.stringify(categories)}, "keywords": string[] (4-8), "meta_title": string (<= 60 chars, ends with "| TechByteX"), "meta_description": string (140-160 chars, includes a call to action), "content_html": string, "faq": [{"q": string, "a": string}] (4-5 items), "image_prompt": string, "image_alt": string (<= 120 chars)}

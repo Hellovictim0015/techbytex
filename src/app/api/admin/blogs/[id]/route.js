@@ -31,7 +31,7 @@ export async function PATCH(req, { params }) {
 
     // Public blog pages are cached; refresh them so the change shows immediately.
     revalidatePath("/blog");
-    revalidatePath(`/blogg/${rows[0].slug}`);
+    revalidatePath(`/blog/${rows[0].slug}`);
     revalidatePath("/sitemap.xml");
 
     await logAudit({

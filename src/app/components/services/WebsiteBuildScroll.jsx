@@ -226,7 +226,7 @@ export default function WebsiteBuildScroll() {
                   <div>
                     <Build progress={buildProgress} at={0.12}>
                       <span className="inline-block rounded-full bg-[#7C3AED]/10 px-1.5 py-0.5 text-[5px] font-bold uppercase tracking-wider text-[#7C3AED] sm:text-[7px]">
-                        Trusted by 500+ enterprises
+                        Website &amp; App Development · Chhattisgarh
                       </span>
                       <p className="mt-1 text-[9px] font-bold leading-[1.15] text-slate-900 sm:text-[15px]">
                         App, Website &amp; Custom Software Development by TechByte<span className="text-[#7C3AED]">X</span>
@@ -236,8 +236,8 @@ export default function WebsiteBuildScroll() {
                       </p>
                     </Build>
                     <Build progress={buildProgress} at={0.22} className="mt-1.5 flex gap-1 sm:mt-2">
-                      <span className="rounded bg-[#7C3AED] px-1.5 py-0.5 text-[6px] font-bold text-white sm:text-[8px]">Portfolio View →</span>
-                      <span className="rounded border border-slate-200 px-1.5 py-0.5 text-[6px] font-semibold text-slate-600 sm:text-[8px]">View Solutions</span>
+                      <span className="rounded bg-[#7C3AED] px-1.5 py-0.5 text-[6px] font-bold text-white sm:text-[8px]">View Portfolio →</span>
+                      <span className="rounded border border-slate-200 px-1.5 py-0.5 text-[6px] font-semibold text-slate-600 sm:text-[8px]">Free Consultation</span>
                     </Build>
                   </div>
                   <Build progress={buildProgress} at={0.3} className="rounded-md bg-slate-900 p-1.5 font-mono text-[5px] leading-relaxed text-slate-300 sm:p-2 sm:text-[7px]">

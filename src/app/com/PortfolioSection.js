@@ -33,11 +33,14 @@ function ProjectLink({ project, className, children }) {
       {children}
     </a>
   ) : (
-    <Link href="/portfolio" className={className}>
+    <Link href={caseStudyHref(project)} className={className}>
       {children}
     </Link>
   );
 }
+
+// Case-study page for a project, e.g. /portfolio/balod-eco-tourism.
+const caseStudyHref = (project) => (project.slug ? `/portfolio/${project.slug}` : "/portfolio");
 
 function Featured({ project }) {
   return (
@@ -90,7 +93,7 @@ function Featured({ project }) {
             </ProjectLink>
           )}
           <Link
-            href="/portfolio"
+            href={caseStudyHref(project)}
             className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-[#7C3AED]/40 hover:text-[#7C3AED]"
           >
             Case study <ArrowRight size={16} />
@@ -110,8 +113,8 @@ function Card({ project, number }) {
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ duration: 0.35 }}
     >
-      <ProjectLink
-        project={project}
+      <Link
+        href={caseStudyHref(project)}
         className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-[#7C3AED]/40 hover:shadow-xl hover:shadow-[#7C3AED]/10"
       >
         <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
@@ -145,7 +148,7 @@ function Card({ project, number }) {
             </div>
           )}
         </div>
-      </ProjectLink>
+      </Link>
     </motion.article>
   );
 }

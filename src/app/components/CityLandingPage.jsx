@@ -80,14 +80,23 @@ const PROCESS_STEPS = [
   { title: "Support & Growth", desc: "Post-launch support, maintenance, and ongoing SEO improvements to keep you ranking and converting." },
 ];
 
-const WHY_US = [
+// The first three points depend on the service; the rest apply to every project.
+const WHY_US_WEB = [
   "Next.js websites built for speed — strong Core Web Vitals, not just good looks",
   "Technical SEO included by default: metadata, schema markup, sitemap, canonical URLs",
   "Mobile-first design, since most local searches happen on a phone",
+];
+const WHY_US_OTHER = (service) => [
+  `${service} planned around your real workflow, not a one-size-fits-all template`,
+  "Modern, proven stack (React, React Native, Next.js, Node.js) chosen to fit the project",
+  "Clean, documented code that you own — easy to extend or hand over later",
+];
+const WHY_US_COMMON = [
   "Transparent, fixed quotes before work begins — no hidden costs",
   "Direct WhatsApp and call access to the team building your project",
   "Post-launch support and maintenance packages available",
 ];
+const isWebService = (label) => /web|website|ecommerce|next\.js|shopify/i.test(label);
 
 // The optional props are used by admin-created location pages ([slug]/page.js);
 // the hand-written Chhattisgarh city pages rely on the defaults.
@@ -100,6 +109,10 @@ export default function CityLandingPage({
   bodyHtml,
   relatedLinks = [],
 }) {
+  const whyUs = [...(isWebService(serviceLabel) ? WHY_US_WEB : WHY_US_OTHER(serviceLabel)), ...WHY_US_COMMON];
+  const ctaTitle = isWebService(serviceLabel)
+    ? `Ready to build your website in ${city.name}?`
+    : `Ready to start your ${serviceLabel.toLowerCase()} project in ${city.name}?`;
 
   return (
     <div className="bg-white font-sans">
@@ -174,7 +187,7 @@ export default function CityLandingPage({
             Why {city.name} Businesses Choose TechByteX
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
-            {WHY_US.map((item, i) => (
+            {whyUs.map((item, i) => (
               <div key={i} className="flex items-start gap-3 bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
                 <CheckCircle2 size={20} className="text-[#7C3AED] shrink-0 mt-0.5" />
                 <span className="text-slate-700">{item}</span>
@@ -302,7 +315,7 @@ export default function CityLandingPage({
           <div className="absolute bottom-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
           <div className="relative z-10">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Ready to build your website in {city.name}?
+              {ctaTitle}
             </h2>
             <p className="text-white/80 text-lg mb-8 max-w-2xl mx-auto">
               Get a free consultation and a clear, fixed quote — no obligation.

@@ -21,7 +21,7 @@ export default async function AdminBlogReviewPage({ params }) {
   const faq = Array.isArray(post.faq) ? post.faq : [];
   const keywords = Array.isArray(post.keywords) ? post.keywords : [];
   const { views, period } = await getPageViews();
-  const traffic = views.get(`/blogg/${post.slug}`);
+  const traffic = views.get(`/blog/${post.slug}`) || views.get(`/blogg/${post.slug}`);
 
   return (
     <div className="space-y-6">
@@ -36,7 +36,7 @@ export default async function AdminBlogReviewPage({ params }) {
             {post.status === "published" && (
               <>
                 {" · "}
-                <a href={`/blogg/${post.slug}`} target="_blank" className="text-violet-300 hover:underline">
+                <a href={`/blog/${post.slug}`} target="_blank" className="text-violet-300 hover:underline">
                   View live ↗
                 </a>
               </>
@@ -54,7 +54,7 @@ export default async function AdminBlogReviewPage({ params }) {
 
       <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 space-y-2 text-sm">
         <p className="text-xs uppercase tracking-wide text-slate-500">Google preview</p>
-        <p className="text-xs text-emerald-400">www.techbytex.in › blogg › {post.slug}</p>
+        <p className="text-xs text-emerald-400">www.techbytex.in › blog › {post.slug}</p>
         <p className="text-lg text-sky-300">{post.meta_title}</p>
         <p className="text-slate-400">{post.meta_description}</p>
         <p className="pt-2 text-xs text-slate-500">

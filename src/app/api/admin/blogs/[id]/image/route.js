@@ -25,7 +25,7 @@ export async function POST(req, { params }) {
     await removeUploadIfUnused(post.featured_image_url);
 
     revalidatePath("/blog");
-    revalidatePath(`/blogg/${post.slug}`);
+    revalidatePath(`/blog/${post.slug}`);
     await logAudit({
       adminUserId: admin.id,
       action: "blog_image_regenerated",

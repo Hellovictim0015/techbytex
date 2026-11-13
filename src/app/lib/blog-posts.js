@@ -2,6 +2,7 @@ import { query } from "./db";
 import { blogPosts as staticPosts } from "../data/blogData";
 import { DEFAULT_OG_IMAGE } from "./seo";
 import { stripHtml } from "./sanitize-html";
+import { BLOG_MERGES, isRetiredLocationPath, replacementForRetiredLocation } from "./retired-urls.mjs";
 
 const AUTHOR = staticPosts[0]?.author || {
   name: "TechByteX Team",
@@ -17,6 +18,23 @@ function formatDate(iso) {
     year: "numeric",
     timeZone: "UTC",
   });
+}
+
+// Internal links inside stored post HTML: posts moved from /blogg to /blog,
+// some posts were merged, and most location pages were removed. Links are
+// rewritten when the post is shown so readers and crawlers never hit a
+// redirect chain or a 410.
+export function fixInternalLinks(html) {
+  return String(html || "").replace(
+    /href=(["'])(?:https?:\/\/(?:www\.)?techbytex\.in)?(\/[^"'#?]*)([^"']*)\1/gi,
+    (match, quote, path, rest) => {
+      let next = path.replace(/^\/blogg(?=\/|$)/, "/blog");
+      const merged = BLOG_MERGES[next.replace(/^\/blog\//, "")];
+      if (next.startsWith("/blog/") && merged) next = merged;
+      if (isRetiredLocationPath(next)) next = replacementForRetiredLocation(next);
+      return next === path ? match : `href=${quote}${next}${rest}${quote}`;
+    }
+  );
 }
 
 // Maps an ai_blog_posts row (AI-generated or imported) into the shape the
@@ -41,7 +59,7 @@ export function toPublicPost(row) {
     date: formatDate(isoDate),
     readTime: `${Math.max(1, Math.round(words / 220))} min read`,
     featured: Boolean(row.is_featured),
-    content: row.content,
+    content: fixInternalLinks(row.content),
   };
 }
 
@@ -54,7 +72,8 @@ export async function getAllBlogPosts() {
     const rows = await query(
       `SELECT * FROM ai_blog_posts WHERE status = 'published' ORDER BY published_at DESC, id DESC`
     );
-    return rows.map(toPublicPost);
+    // Merged posts redirect to the kept post, so they are never listed.
+    return rows.map(toPublicPost).filter((post) => !BLOG_MERGES[post.slug]);
   } catch {
     return staticPosts;
   }

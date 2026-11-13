@@ -1,6 +1,7 @@
 // Used by the /portfolio page only when the database is unreachable.
 // Next.js-only (static image imports); scripts use data/portfolio.js instead.
 import { portfolioSeed } from "./portfolio";
+import { slugify } from "../lib/slug";
 import spa from "../../img2/spa.png";
 import ad from "../../img2/ad.png";
 import ts from "../../img2/ts.png";
@@ -18,6 +19,7 @@ const STATIC_IMAGES = {
 export const portfolioFallback = portfolioSeed.map((p, i) => ({
   ...p,
   id: `seed-${i + 1}`,
+  slug: slugify(p.title),
   image: STATIC_IMAGES[p.imageFile] || `/${p.imageFile.replace(/^public\//, "")}`,
   videoUrl: null,
 }));

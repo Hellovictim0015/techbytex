@@ -168,9 +168,6 @@ export default function ServiceLandingPage({ service }) {
           <Link href="/web-development-chhattisgarh" className="inline-flex items-center text-sm font-semibold text-[#7C3AED]">
             View all cities we serve <ArrowRight size={14} className="ml-1" />
           </Link>
-          <Link href="/locations" className="ml-6 inline-flex items-center text-sm font-semibold text-[#7C3AED]">
-            Locations outside Chhattisgarh <ArrowRight size={14} className="ml-1" />
-          </Link>
         </div>
       </section>
 

@@ -30,9 +30,8 @@ export const metadata = {
     path: "/",
   }),
   metadataBase: new URL("https://www.techbytex.in"),
-  authors: [{ name: "TechByteX Team" }],
   creator: "TechByteX",
-  publisher: "TechByteX Digital Solutions",
+  publisher: "TechByteX Software Solutions",
   robots: {
     index: true,
     follow: true,
@@ -47,10 +46,6 @@ export const metadata = {
   icons: {
     icon: "/favicon.ico",
   },
-  other: {
-    "geo.region": "IN-CT", 
-    "geo.placename": "Dalli Rajhara, Raipur, Bhilai", 
-  },
 };
 
 // Tells browsers (incl. "auto dark" modes) the site is light-only.
@@ -62,9 +57,6 @@ export default function RootLayout({ children }) {
   return (
     // Added lang="en-IN" for better regional targeting
     <html lang="en-IN">
-      <head>
-        <meta name="google-adsense-account" content="ca-pub-5031668136033398" />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased relative min-h-screen`}
       >
