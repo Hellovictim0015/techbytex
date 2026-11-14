@@ -19,7 +19,8 @@ const Footer = () => {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState(null); // null | "sending" | "sent" | error text
 
-  if (pathname?.startsWith("/admin")) {
+  // Admin and team-member pages have their own layout.
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/team/")) {
     return null;
   }
 

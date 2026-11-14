@@ -16,6 +16,9 @@ import {
   MapPinned,
   MessageSquareText,
   Files,
+  KeyRound,
+  UsersRound,
+  Send,
 } from "lucide-react";
 import { getCurrentAdmin } from "@/app/lib/auth";
 import LogoutButton from "../LogoutButton";
@@ -23,6 +26,7 @@ import LogoutButton from "../LogoutButton";
 const NAV_ITEMS = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/leads", label: "Leads", icon: Inbox },
+  { href: "/admin/lead-assign", label: "Lead Assign", icon: UsersRound },
   { href: "/admin/seo", label: "SEO", icon: Search },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/admin/google-business", label: "Google Business", icon: MapPin },
@@ -31,8 +35,10 @@ const NAV_ITEMS = [
   { href: "/admin/blogs", label: "Blogs", icon: Newspaper },
   { href: "/admin/location-pages", label: "Location Pages", icon: MapPinned },
   { href: "/admin/marketing", label: "Marketing", icon: MessageSquareText },
+  { href: "/admin/outreach", label: "Lead Outreach", icon: Send },
   { href: "/admin/projects", label: "Projects", icon: FolderKanban },
   { href: "/admin/portfolio", label: "Portfolio", icon: Briefcase },
+  { href: "/admin/vault", label: "Client Vault", icon: KeyRound },
   { href: "/admin/recommendations", label: "Recommendations", icon: ListChecks },
   { href: "/admin/settings", label: "Settings", icon: Settings },
   { href: "/admin/logs", label: "Logs", icon: ScrollText },

@@ -4,7 +4,8 @@ import { usePathname } from "next/navigation";
 
 export default function FloatingContact() {
   const pathname = usePathname();
-  if (pathname?.startsWith("/admin")) {
+  // Admin and team-member pages have their own layout.
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/team/")) {
     return null;
   }
 

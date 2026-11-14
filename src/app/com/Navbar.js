@@ -43,7 +43,8 @@ const Navbar = () => {
     }
   }, [isMenuOpen]);
 
-  if (pathname?.startsWith('/admin')) {
+  // Admin and team-member pages have their own layout.
+  if (pathname?.startsWith('/admin') || pathname?.startsWith('/team/')) {
     return null;
   }
 

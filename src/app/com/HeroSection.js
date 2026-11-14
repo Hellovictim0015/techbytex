@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronDown, ArrowRight, ArrowUpRight, CalendarCheck, MapPin, PhoneCall, BadgeIndianRupee } from 'lucide-react';
+import { ChevronDown, ArrowRight, ArrowUpRight, CalendarCheck, MapPin, PhoneCall, BadgeIndianRupee, Code2 } from 'lucide-react';
 
 // Real, checkable facts instead of decorative claims.
 const FACTS = [
@@ -78,48 +78,65 @@ const HeroSection = ({ projects = [] }) => {
             
           </div>
 
-          {/* --- Right Column: recent work + facts --- */}
+          {/* --- Right Column: recent work + facts, in the terminal-style frame --- */}
           <div className="relative">
-            <div className="absolute -inset-1 bg-gradient-to-r from-[#7C3AED] to-fuchsia-500 rounded-2xl blur-2xl opacity-10"></div>
-            <div className="relative bg-white border border-slate-200 rounded-2xl shadow-2xl p-6 sm:p-8">
-              <p className="text-xs font-bold uppercase tracking-widest text-[#7C3AED]">Recent work</p>
-              {recent.length > 0 ? (
-                <ul className="mt-4 divide-y divide-slate-100">
-                  {recent.map((p) => (
-                    <li key={p.id ?? p.title}>
-                      <Link href={p.slug ? `/portfolio/${p.slug}` : '/portfolio'} className="group flex items-center gap-4 py-3">
-                        <span className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-50">
-                          {p.image && (
-                            <Image
-                              src={p.image}
-                              alt={p.altText || p.title}
-                              fill
-                              sizes="80px"
-                              unoptimized={unoptimized(p.image)}
-                              className="object-cover"
-                            />
-                          )}
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate font-semibold text-slate-900 group-hover:text-[#7C3AED]">{p.title}</span>
-                          <span className="block truncate text-sm text-slate-500">{p.subtitle || p.category}</span>
-                        </span>
-                        <ArrowUpRight size={18} className="shrink-0 text-slate-300 group-hover:text-[#7C3AED]" />
-                      </Link>
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#7C3AED] to-fuchsia-500 rounded-2xl blur-2xl opacity-10 animate-pulse"></div>
+            <div className="relative bg-[#0F172A] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl transform rotate-1 hover:rotate-0 transition-transform duration-500">
+              {/* Terminal header */}
+              <div className="flex items-center justify-between px-4 py-3 bg-slate-900/50 border-b border-slate-800">
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50"></div>
+                  <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
+                </div>
+                <div className="text-xs font-mono text-slate-500 flex items-center gap-2">
+                  <Code2 size={12} />
+                  techbytex ~ recent_work
+                </div>
+              </div>
+
+              <div className="p-6">
+                <p className="font-mono text-xs text-slate-500">
+                  <span className="text-purple-400">$</span> ls projects --latest
+                </p>
+                {recent.length > 0 ? (
+                  <ul className="mt-3 divide-y divide-slate-800">
+                    {recent.map((p) => (
+                      <li key={p.id ?? p.title}>
+                        <Link href={p.slug ? `/portfolio/${p.slug}` : '/portfolio'} className="group flex items-center gap-4 py-3">
+                          <span className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg border border-slate-700 bg-slate-800">
+                            {p.image && (
+                              <Image
+                                src={p.image}
+                                alt={p.altText || p.title}
+                                fill
+                                sizes="80px"
+                                unoptimized={unoptimized(p.image)}
+                                className="object-cover"
+                              />
+                            )}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate font-semibold text-slate-100 group-hover:text-violet-300">{p.title}</span>
+                            <span className="block truncate text-sm text-slate-400">{p.subtitle || p.category}</span>
+                          </span>
+                          <ArrowUpRight size={18} className="shrink-0 text-slate-600 group-hover:text-violet-300" />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-3 text-slate-400">See our projects on the portfolio page.</p>
+                )}
+                <ul className="mt-4 space-y-2.5 border-t border-slate-800 pt-4">
+                  {FACTS.map(({ Icon, text }) => (
+                    <li key={text} className="flex items-center gap-3 text-sm text-slate-300">
+                      <Icon size={16} className="text-violet-400" />
+                      {text}
                     </li>
                   ))}
                 </ul>
-              ) : (
-                <p className="mt-4 text-slate-500">See our projects on the portfolio page.</p>
-              )}
-              <ul className="mt-6 space-y-3 border-t border-slate-100 pt-6">
-                {FACTS.map(({ Icon, text }) => (
-                  <li key={text} className="flex items-center gap-3 text-sm font-medium text-slate-700">
-                    <Icon size={18} className={brandColorClass} />
-                    {text}
-                  </li>
-                ))}
-              </ul>
+              </div>
             </div>
           </div>
 
